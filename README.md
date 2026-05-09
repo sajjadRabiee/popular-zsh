@@ -2,6 +2,9 @@
 
 Tiny `zsh` shortcuts for saving, running, and templating your most-used commands.
 
+- Wiki docs: `docs/wiki/`
+- Launch post: `docs/launch-post.md`
+
 It gives you:
 
 - `padd` to save commands
@@ -116,3 +119,4 @@ export POPULAR_COMMANDS_FILE=/path/to/your/file
 - `popular.zsh`
 - `install.sh`
 - `docs/launch-post.md`
+- `docs/wiki/`

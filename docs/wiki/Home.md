@@ -1,0 +1,50 @@
+# popular.zsh Wiki
+
+Welcome to the wiki for `popular.zsh`.
+
+`popular.zsh` is a tiny helper for `zsh` that lets you save, run, and template frequently used commands with a small set of memorable shortcuts.
+
+## What it gives you
+
+- `padd` to save commands
+- `p` to run commands
+- `pls` to browse saved commands
+- `premove` to remove entries
+- `pedit` to edit the command file directly
+- tab completion for command names
+- tab completion for template options like `--port=` or `--class=`
+
+## Quick Start
+
+Install it:
+
+```zsh
+curl -fsSL https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/install.sh | zsh
+```
+
+Save something:
+
+```zsh
+padd gs git status
+```
+
+Run it:
+
+```zsh
+p gs
+```
+
+Use a template:
+
+```zsh
+padd serve 'python3 -m http.server {{port}}'
+p serve --port=8000
+```
+
+## Wiki Pages
+
+- [Installation](Installation.md)
+- [Command Reference](Command-Reference.md)
+- [Templates](Templates.md)
+- [Examples](Examples.md)
+- [Why popular.zsh?](Why-popular.zsh.md)
