@@ -103,7 +103,7 @@ _popular_usage_example_line() {
 }
 
 _popular_usage() {
-  setopt local_options no_xtrace 2>/dev/null
+  emulate -L zsh -o no_xtrace 2>/dev/null || setopt local_options no_xtrace 2>/dev/null
   print
   _popular_usage_box_top
   local title_plain='popular.zsh · bookmark and run shell commands'
@@ -453,9 +453,11 @@ p() {
 }
 
 pls() {
-  setopt local_options no_xtrace 2>/dev/null
-  local count max_name line name command options preview name_pad empty_pad
-  local -a rows=()
+  emulate -L zsh -o no_xtrace 2>/dev/null || setopt local_options no_xtrace 2>/dev/null
+  local count max_name line name command options preview name_pad empty_pad hints display
+  local first gap
+  local -i pw oi
+  local -a rows=() ochunks=()
 
   _popular_ensure_file
   if [[ ! -s "$POPULAR_COMMANDS_FILE" ]]; then
@@ -484,7 +486,6 @@ pls() {
   for line in "${rows[@]}"; do
     name="${line%%|*}"
     command="${line#*|}"
-    local hints display
     hints=$(_popular_placeholder_summary "$command")
     preview=$(printf '%s\n' "$command" | sed -e 's/{{[A-Za-z0-9_-]\{1,\}}}/<value>/g' -e 's/\[\[[A-Za-z0-9_-]\{1,\}\]\]/<value>/g')
     display="$preview"
@@ -492,13 +493,10 @@ pls() {
     name_pad=$(printf "%-${max_name}s" "$name")
     empty_pad=$(printf "%-${max_name}s" "")
 
-    local -i pw=$(( _POPULAR_BOX_INNER - 4 - max_name ))
+    pw=$(( _POPULAR_BOX_INNER - 4 - max_name ))
     (( pw < 12 )) && pw=12
 
-    local -a ochunks
-    local first=1
-    local -i oi
-
+    first=1
     ochunks=("${(@f)$( _popular_wrap_fill "$display" "$pw" )}")
     for (( oi = 1; oi <= ${#ochunks}; oi++ )); do
       [[ -z "${ochunks[oi]//[[:space:]]/}" ]] && continue
@@ -514,7 +512,13 @@ pls() {
       fi
     done
 
-    local gap=$(printf '%*s' "$_POPULAR_BOX_INNER" '')
+    if (( first )); then
+      _popular_box_inner_line \
+        " ${name_pad} │ " \
+        " ${fg[green]}${name_pad}${reset_color} ${fg[blue]}│${reset_color} "
+    fi
+
+    gap=$(printf '%*s' "$_POPULAR_BOX_INNER" '')
     _popular_box_inner_line "$gap" "$gap"
   done
 
