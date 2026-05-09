@@ -16,7 +16,7 @@ It gives you:
 - `pexport` / `pimport` to back up, share, or move your saved commands between machines
 - `pedit` / `pedit <name>` to edit the whole store or one command’s text (default editor: **vim**)
 - `phelp` for a formatted reference in the terminal
-- tab completion for command names
+- tab completion for saved names (`p`, `premove`, `pedit`, `pls` filters)
 - tab completion for template options like `--class=`
 
 ## Install
@@ -47,7 +47,7 @@ curl -fsSL https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/insta
 padd <name> <command...>
 paddh <history#> [name]
 p <name> [options...]
-pls
+pls [needle…]
 premove <name>
 pexport [file|-]
 pimport [-r|--replace] <file>
@@ -96,6 +96,7 @@ Placeholders use **different** syntax for different calling styles:
 
 - **`{{name}}`** — pass values as long options: `--name=value` (or `--name value`). Tab completion suggests these flags.
 - **`[[name]]`** — pass values as **plain positional** arguments to `p`, in **left-to-right order** of each **distinct** `[[name]]` the first time it appears. Repeating the same `[[name]]` in the command still uses **one** value.
+- **`{{name:value}}`** and **`[[name:value]]`** — optional inline **defaults** stored in the saved command (same file as the template). If you omit that argument when you run `p`, the default is used. You can still override with `--name=…` or an extra positional as usual. Values cannot contain `}` (curly) or `]` (bracket) respectively.
 
 ```zsh
 padd serve 'python3 -m http.server [[port]]'
@@ -128,9 +129,9 @@ When you call `padd`, wrap the command in **single quotes** if it contains doubl
 If `compinit` is available, the script enables completion automatically:
 
 - `p <TAB>` suggests saved command names
-- `premove <TAB>` and `pedit <TAB>` suggest saved command names
+- `premove <TAB>`, `pedit <TAB>`, and `pls <TAB>` suggest saved command names (each filter word after `pls`)
 - `pexport` and `pimport <TAB>` suggest file paths
-- `p serve <TAB>` suggests `--name=` only for **`{{name}}`** placeholders (not for `[[name]]`)
+- `p serve <TAB>` suggests **`--name=`** or **`--name=default`** when the template has **`{{name}}`** or **`{{name:default}}`** (not for `[[name]]` positional slots)
 
 ## Storage
 

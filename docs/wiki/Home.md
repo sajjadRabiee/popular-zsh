@@ -14,7 +14,7 @@ Welcome to the wiki for `popular.zsh`.
 - `pexport` and `pimport` to export or merge saved commands
 - `pedit` / `pedit <name>` to edit the whole file or one command (default editor: vim)
 - `phelp` for formatted help in the terminal
-- tab completion for command names
+- tab completion for saved names (`p`, `premove`, `pedit`, `pls` filters)
 - tab completion for template options like `--port=` or `--class=`
 
 ## Quick Start

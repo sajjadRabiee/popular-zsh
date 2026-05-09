@@ -38,10 +38,11 @@ p other --port=8000
 
 ## `pls`
 
-Show a polished list of saved commands with template option hints.
+Show a polished list of saved commands with template option hints. With arguments, only bookmarks whose **name** contains the needle (substring, case-insensitive) are shown; multiple words form one needle string.
 
 ```zsh
 pls
+pls git
 ```
 
 ## `premove`

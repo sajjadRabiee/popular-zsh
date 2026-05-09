@@ -8,6 +8,7 @@ Names use letters, digits, `_`, and `-`.
 
 - **`{{name}}`** — supply values with **`--name=value`** or **`--name value`** when you run `p`.
 - **`[[name]]`** — supply values as **positional** arguments after the bookmark name, in order of each **distinct** `[[name]]` by **first appearance** in the template. Repeating `[[name]]` still uses a single value.
+- **`{{name:default}}`** and **`[[name:default]]`** — defaults live **inside the saved command text** (no extra file). Omitting that argument uses `default`; empty default is allowed (`{{msg:}}`). Override anytime with `--name=…` or a positional. The default portion cannot contain `}` or `]` (use templates without inline defaults if you need those characters in the value).
 
 ## Examples
 
@@ -38,6 +39,6 @@ p open-model --class='my.app.models.User' --env=dev
 
 ## Completion
 
-After `p <name>`, completion offers **`--name=`** only for placeholders written as **`{{name}}`**. `[[name]]` slots are filled from positional arguments, so they do not get `--` suggestions.
+After `p <name>`, completion offers **`--name=`** or a full **`--name=default`** when the template uses **`{{name:default}}`**. Plain **`{{name}}`** still completes to **`--name=`**. `[[name]]` slots are filled from positional arguments, so they do not get `--` suggestions.
 
-Other completion hooks from `popular.zsh` include saved names for `p` / `premove`, file paths for `pexport` and `pimport`, and name suggestions where applicable. Run `phelp` for the full command list.
+Other completion hooks from `popular.zsh` include saved names for `p` / `premove` / `pls` (filter words), file paths for `pexport` and `pimport`, and name suggestions where applicable. Run `phelp` for the full command list.

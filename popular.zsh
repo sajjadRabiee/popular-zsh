@@ -135,8 +135,8 @@ _popular_usage() {
   _popular_usage_sep
   _popular_usage_row "padd <name> <command…>" "Save a command"
   _popular_usage_row "paddh <#> [name]" "Save from history (event # from \`history\`; default name h<#>)"
-  _popular_usage_row "p <name> [args…]" "Run: {{x}} → --x=…; [[x]] → positional (order matches template)"
-  _popular_usage_row "pls" "List saved commands"
+  _popular_usage_row "p <name> [args…]" "Run: {{x}} → --x=…; [[x]] → positional; optional {{x:def}} / [[x:def]] defaults in the saved command"
+  _popular_usage_row "pls [needle…]" "List saved commands (optional: filter names, substring, case-insensitive)"
   _popular_usage_row "premove <name>" "Delete a saved command"
   _popular_usage_row "pexport [file|-]" "Export (\`-\` or empty → stdout)"
   _popular_usage_row "pimport [-r|--replace] <file>" "Import (merge, or replace store)"
@@ -154,6 +154,9 @@ _popular_usage() {
   _popular_usage_example_line 'p gs'
   _popular_usage_example_line 'p serve 8000'
   _popular_usage_example_line 'p serve --port=8000   # when saved with {{port}}'
+  _popular_usage_example_line "padd lazy 'curl http://[[host:localhost]]:[[port:8080]]/health'"
+  _popular_usage_example_line 'p lazy                  # uses localhost and 8080 from template'
+  _popular_usage_example_line 'pls git               # list commands whose name contains "git"'
   _popular_usage_box_bot
   print
 }
@@ -259,14 +262,58 @@ _popular_get_command() {
 
 _popular_emit_template_slots() {
   local line="$1"
+  local rest inner full pname def
+  local -i idx
+  local _ce='}}'
+  local _be=']]'
 
   while [[ -n "$line" ]]; do
-    if [[ "$line" =~ '^\{\{([A-Za-z0-9_-]+)\}\}' ]]; then
-      print -r -- "curly:${match[1]}"
-      line="${line#$MATCH}"
-    elif [[ "$line" =~ '^\[\[([A-Za-z0-9_-]+)\]\]' ]]; then
-      print -r -- "bracket:${match[1]}"
-      line="${line#$MATCH}"
+    if [[ "$line" == '{{'* ]]; then
+      rest="${line#'{{'}"
+      idx="${rest[(i)$_ce]}"
+      if (( idx > ${#rest} )); then
+        line="${line[2,-1]}"
+        continue
+      fi
+      inner="${rest[1,$((idx - 1))]}"
+      full="{{${inner}}}"
+      line="${line#"$full"}"
+      if [[ "$inner" == *:* ]]; then
+        pname="${inner%%:*}"
+        def="${inner#*:}"
+      else
+        pname="$inner"
+        def=""
+      fi
+      [[ "$pname" =~ '^[A-Za-z0-9_-]+$' ]] || continue
+      if [[ "$inner" == *:* ]]; then
+        print -r -- $'curly\t'"$pname"$'\t'"$def"
+      else
+        print -r -- $'curly\t'"$pname"
+      fi
+    elif [[ "$line" == '[['* ]]; then
+      rest="${line#'[['}"
+      idx="${rest[(i)$_be]}"
+      if (( idx > ${#rest} )); then
+        line="${line[2,-1]}"
+        continue
+      fi
+      inner="${rest[1,$((idx - 1))]}"
+      full="[[$inner]]"
+      line="${line#"$full"}"
+      if [[ "$inner" == *:* ]]; then
+        pname="${inner%%:*}"
+        def="${inner#*:}"
+      else
+        pname="$inner"
+        def=""
+      fi
+      [[ "$pname" =~ '^[A-Za-z0-9_-]+$' ]] || continue
+      if [[ "$inner" == *:* ]]; then
+        print -r -- $'bracket\t'"$pname"$'\t'"$def"
+      else
+        print -r -- $'bracket\t'"$pname"
+      fi
     else
       line="${line[2,-1]}"
     fi
@@ -275,17 +322,33 @@ _popular_emit_template_slots() {
 
 _popular_placeholder_summary() {
   local command="$1"
-  local kind pname
+  local kind pname rest def
   local -a items=()
   local -A seen
 
-  while IFS=: read -r kind pname; do
-    [[ -n "${seen[$pname]}" ]] && continue
-    seen[$pname]=1
-    if [[ "$kind" == bracket ]]; then
-      items+=("[[${pname}]]")
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -z "$line" ]] && continue
+    kind="${line%%$'\t'*}"
+    rest="${line#*$'\t'}"
+    if [[ "$rest" != *$'\t'* ]]; then
+      pname="$rest"
+      [[ -n "${seen[$pname]}" ]] && continue
+      seen[$pname]=1
+      if [[ "$kind" == bracket ]]; then
+        items+=("[[${pname}]]")
+      else
+        items+=("{{${pname}}}")
+      fi
     else
-      items+=("{{${pname}}}")
+      pname="${rest%%$'\t'*}"
+      def="${rest#*$'\t'}"
+      [[ -n "${seen[$pname]}" ]] && continue
+      seen[$pname]=1
+      if [[ "$kind" == bracket ]]; then
+        items+=("[[${pname}:${def}]]")
+      else
+        items+=("{{${pname}:${def}}}")
+      fi
     fi
   done < <(_popular_emit_template_slots "$command")
 
@@ -301,23 +364,44 @@ _popular_render_command() {
   local -A curly_needed=()
   local -a bracket_order=()
   local -A bracket_seen=()
-  local kind pname
+  local -A emb_curly=()
+  local -A emb_bracket=()
+  local line kind pname rest def
   local arg key val escaped
   local -a pos_pool=()
   local -A curly_vals=()
   local -A bracket_vals=()
   local -a passthrough=()
-  local rendered="$template"
-  local miss
+  local rendered=""
+  local miss tail="$template"
 
-  while IFS=: read -r kind pname; do
-    if [[ "$kind" == curly ]]; then
-      curly_needed[$pname]=1
-    elif [[ "$kind" == bracket ]]; then
-      [[ -z "${bracket_seen[$pname]}" ]] && {
-        bracket_order+=("$pname")
-        bracket_seen[$pname]=1
-      }
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -z "$line" ]] && continue
+    kind="${line%%$'\t'*}"
+    rest="${line#*$'\t'}"
+    if [[ "$rest" != *$'\t'* ]]; then
+      pname="$rest"
+      if [[ "$kind" == curly ]]; then
+        curly_needed[$pname]=1
+      else
+        [[ -z "${bracket_seen[$pname]}" ]] && {
+          bracket_order+=("$pname")
+          bracket_seen[$pname]=1
+        }
+      fi
+    else
+      pname="${rest%%$'\t'*}"
+      def="${rest#*$'\t'}"
+      if [[ "$kind" == curly ]]; then
+        curly_needed[$pname]=1
+        emb_curly[$pname]="$def"
+      else
+        [[ -z "${bracket_seen[$pname]}" ]] && {
+          bracket_order+=("$pname")
+          bracket_seen[$pname]=1
+        }
+        emb_bracket[$pname]="$def"
+      fi
     fi
   done < <(_popular_emit_template_slots "$template")
 
@@ -351,16 +435,28 @@ _popular_render_command() {
     pos_pool+=("$arg")
   done
 
+  for pname in ${(k)curly_needed}; do
+    [[ -n "${curly_vals[$pname]+set}" ]] && continue
+    [[ -n "${emb_curly[$pname]+set}" ]] && curly_vals[$pname]="${emb_curly[$pname]}"
+  done
+
+  local -i nb=${#bracket_order}
+  while (( nb > ${#pos_pool} )); do
+    pname="${bracket_order[${#pos_pool} + 1]}"
+    [[ -n "${emb_bracket[$pname]+set}" ]] || break
+    pos_pool+=("${emb_bracket[$pname]}")
+  done
+
   miss=()
   for pname in ${(k)curly_needed}; do
-    [[ -z "${curly_vals[$pname]}" ]] && miss+=("--${pname}=…")
+    [[ -n "${curly_vals[$pname]+set}" ]] && continue
+    miss+=("--${pname}=…")
   done
   if (( ${#miss[@]} > 0 )); then
     _popular_warn "p: missing option(s): ${(j:, :)miss}"
     return 1
   fi
 
-  local -i nb=${#bracket_order}
   if (( nb > ${#pos_pool} )); then
     _popular_warn "p: missing positional argument(s) for: ${(j:, :)bracket_order}"
     return 1
@@ -373,17 +469,47 @@ _popular_render_command() {
 
   (( nb < ${#pos_pool} )) && passthrough=("${(@)pos_pool[$((nb + 1)),-1]}")
 
-  for pname in ${(k)curly_vals}; do
-    escaped=$(printf '%q' "${curly_vals[$pname]}")
-    rendered="${rendered//\{\{$pname\}\}/$escaped}"
-  done
-  for pname in ${(k)bracket_vals}; do
-    escaped=$(printf '%q' "${bracket_vals[$pname]}")
-    rendered="${rendered//\[\[$pname\]\]/$escaped}"
+  local tw_rest tw_inner tw_full tw_name
+  local -i tw_idx
+  local _ce='}}'
+  local _be=']]'
+  while [[ -n "$tail" ]]; do
+    if [[ "$tail" == '{{'* ]]; then
+      tw_rest="${tail#'{{'}"
+      tw_idx="${tw_rest[(i)$_ce]}"
+      if (( tw_idx > ${#tw_rest} )); then
+        rendered+="${tail[1]}"
+        tail="${tail[2,-1]}"
+        continue
+      fi
+      tw_inner="${tw_rest[1,$((tw_idx - 1))]}"
+      tw_full="{{${tw_inner}}}"
+      tw_name="${tw_inner%%:*}"
+      [[ "$tw_inner" == *:* ]] || tw_name="$tw_inner"
+      rendered+="${(q)curly_vals[$tw_name]}"
+      tail="${tail#"$tw_full"}"
+    elif [[ "$tail" == '[['* ]]; then
+      tw_rest="${tail#'[['}"
+      tw_idx="${tw_rest[(i)$_be]}"
+      if (( tw_idx > ${#tw_rest} )); then
+        rendered+="${tail[1]}"
+        tail="${tail[2,-1]}"
+        continue
+      fi
+      tw_inner="${tw_rest[1,$((tw_idx - 1))]}"
+      tw_full="[[$tw_inner]]"
+      tw_name="${tw_inner%%:*}"
+      [[ "$tw_inner" == *:* ]] || tw_name="$tw_inner"
+      rendered+="${(q)bracket_vals[$tw_name]}"
+      tail="${tail#"$tw_full"}"
+    else
+      rendered+="${tail[1]}"
+      tail="${tail[2,-1]}"
+    fi
   done
 
   for arg in "${passthrough[@]}"; do
-    rendered+=" $(printf '%q' "$arg")"
+    rendered+=" ${(q)arg}"
   done
 
   print -r -- "$rendered"
@@ -455,15 +581,19 @@ p() {
 pls() {
   emulate -L zsh -o no_xtrace 2>/dev/null || setopt local_options no_xtrace 2>/dev/null
   local count max_name line name command options preview name_pad empty_pad hints display
-  local first gap
-  local -i pw oi
-  local -a rows=() ochunks=()
+  local first gap needle nlow ilow
+  local -i pw oi shown
+  local -a rows=() ochunks=() filtered=()
 
   _popular_ensure_file
   if [[ ! -s "$POPULAR_COMMANDS_FILE" ]]; then
     _popular_note "No saved commands yet."
     return 0
   fi
+
+  needle="$*"
+  needle="${needle#"${needle%%[![:space:]]*}"}"
+  needle="${needle%"${needle##*[![:space:]]}"}"
 
   count=$(_popular_names | wc -l | tr -d ' ')
   max_name=12
@@ -479,15 +609,41 @@ pls() {
     rows+=("$name|$command")
   done < "$POPULAR_COMMANDS_FILE"
 
+  if [[ -n "$needle" ]]; then
+    nlow="${needle:l}"
+    filtered=()
+    for line in "${rows[@]}"; do
+      name="${line%%|*}"
+      ilow="${name:l}"
+      [[ "$ilow" == *${(b)nlow}* ]] && filtered+=("$line")
+    done
+    rows=( "${filtered[@]}" )
+    max_name=12
+    for line in "${rows[@]}"; do
+      name="${line%%|*}"
+      [[ -n "$name" ]] || continue
+      (( ${#name} > max_name )) && max_name=${#name}
+    done
+    shown=${#rows[@]}
+    if (( shown == 0 )); then
+      _popular_note "No commands match: $needle"
+      return 0
+    fi
+  fi
+
   print
-  print -r -- "${fg[cyan]}Popular Commands${reset_color} ${fg[white]}$count saved${reset_color}"
+  if [[ -n "$needle" ]]; then
+    print -r -- "${fg[cyan]}Popular Commands${reset_color} ${fg[white]}${shown} matching · ${count} saved${reset_color} ${fg[yellow]}($needle)${reset_color}"
+  else
+    print -r -- "${fg[cyan]}Popular Commands${reset_color} ${fg[white]}$count saved${reset_color}"
+  fi
   print -r -- "${fg[blue]}╭${_POPULAR_RULE78}╮${reset_color}"
 
   for line in "${rows[@]}"; do
     name="${line%%|*}"
     command="${line#*|}"
     hints=$(_popular_placeholder_summary "$command")
-    preview=$(printf '%s\n' "$command" | sed -e 's/{{[A-Za-z0-9_-]\{1,\}}}/<value>/g' -e 's/\[\[[A-Za-z0-9_-]\{1,\}\]\]/<value>/g')
+    preview=$(printf '%s\n' "$command" | sed -E -e 's/\{\{[A-Za-z0-9_-]+(:[^}]*)?\}\}/<value>/g' -e 's/\[\[[A-Za-z0-9_-]+(:[^\]]*)?\]\]/<value>/g')
     display="$preview"
     [[ -n "$hints" ]] && display="$preview"$'\n'"$hints"
     name_pad=$(printf "%-${max_name}s" "$name")
@@ -713,42 +869,60 @@ phelp() {
 }
 
 _popular_complete_saved_names() {
+  local label="${1:-saved command}"
   local -a entries
   entries=("${(@f)$(_popular_names)}")
-  _describe 'saved command' entries
+  _describe "$label" entries
+}
+
+_popular_complete_pls() {
+  (( CURRENT >= 2 )) || return 1
+  _popular_complete_saved_names 'pls filter'
 }
 
 _popular_complete_template_options() {
   local name="$1"
-  local command kind pname
-  local -a placeholders=()
+  local command kind pname rest def
   local -a options=()
   local word used
   local -A seen_c
 
   command=$(_popular_get_command "$name") || return 1
 
-  while IFS=: read -r kind pname; do
-    [[ "$kind" == curly ]] || continue
-    [[ -n "${seen_c[$pname]}" ]] && continue
-    seen_c[$pname]=1
-    placeholders+=("$pname")
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -z "$line" ]] && continue
+    kind="${line%%$'\t'*}"
+    [[ "$kind" != curly ]] && continue
+    rest="${line#*$'\t'}"
+    if [[ "$rest" != *$'\t'* ]]; then
+      pname="$rest"
+      [[ -n "${seen_c[$pname]}" ]] && continue
+      seen_c[$pname]=1
+      used=0
+      for word in "${words[@]:2}"; do
+        if [[ "$word" == --${pname} || "$word" == --${pname}=* ]]; then
+          used=1
+          break
+        fi
+      done
+      (( used )) && continue
+      options+=("--${pname}=")
+    else
+      pname="${rest%%$'\t'*}"
+      def="${rest#*$'\t'}"
+      [[ -n "${seen_c[$pname]}" ]] && continue
+      seen_c[$pname]=1
+      used=0
+      for word in "${words[@]:2}"; do
+        if [[ "$word" == --${pname} || "$word" == --${pname}=* ]]; then
+          used=1
+          break
+        fi
+      done
+      (( used )) && continue
+      options+=("--${pname}=${def}")
+    fi
   done < <(_popular_emit_template_slots "$command")
-
-  (( ${#placeholders[@]} > 0 )) || return 1
-
-  for placeholder in "${placeholders[@]}"; do
-    used=0
-    for word in "${words[@]:2}"; do
-      if [[ "$word" == --${placeholder} || "$word" == --${placeholder}=* ]]; then
-        used=1
-        break
-      fi
-    done
-
-    (( used )) && continue
-    options+=("--${placeholder}=")
-  done
 
   (( ${#options[@]} > 0 )) || return 1
   _describe 'template option' options
@@ -775,6 +949,7 @@ if [[ -o interactive ]]; then
   if whence compdef >/dev/null 2>&1; then
     compdef _popular_complete_p p
     compdef _popular_complete_saved_names premove
+    compdef _popular_complete_pls pls
 
     _popular_complete_pedit() {
       (( CURRENT == 2 )) || return 1
