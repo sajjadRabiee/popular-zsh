@@ -6,10 +6,20 @@
 curl -fsSL https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/install.sh | zsh
 ```
 
-This downloads `popular.zsh` into:
+This downloads the bootstrap script and all modules into:
 
-```zsh
+```text
 ~/.popular-zsh/popular.zsh
+~/.popular-zsh/lib/popular/ui.zsh
+~/.popular-zsh/lib/popular/store.zsh
+~/.popular-zsh/lib/popular/template.zsh
+~/.popular-zsh/lib/popular/secrets.zsh
+~/.popular-zsh/lib/popular/cmd-add.zsh
+~/.popular-zsh/lib/popular/cmd-run.zsh
+~/.popular-zsh/lib/popular/cmd-list.zsh
+~/.popular-zsh/lib/popular/cmd-io.zsh
+~/.popular-zsh/lib/popular/cmd-edit.zsh
+~/.popular-zsh/lib/popular/completion.zsh
 ```
 
 And adds this to your `~/.zshrc` if needed:
@@ -18,12 +28,21 @@ And adds this to your `~/.zshrc` if needed:
 source ~/.popular-zsh/popular.zsh
 ```
 
-## Manual install
-
-Clone the repo or download `popular.zsh`, then add:
+Override the GitHub raw root (branch layout) with:
 
 ```zsh
-source /absolute/path/to/popular.zsh
+POPULAR_REPO_BASE="https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main" \
+curl -fsSL "$POPULAR_REPO_BASE/install.sh" | zsh
+```
+
+(`install.sh` uses `POPULAR_REPO_BASE` internally with that default.)
+
+## Manual install
+
+Clone the repo so `popular.zsh` and `lib/popular/` stay together, then add:
+
+```zsh
+source /absolute/path/to/repo/popular.zsh
 ```
 
 Reload your shell:
@@ -32,7 +51,7 @@ Reload your shell:
 source ~/.zshrc
 ```
 
-## Custom install location
+## Custom install directory
 
 You can override the default install directory:
 
@@ -41,7 +60,7 @@ POPULAR_INSTALL_DIR="$HOME/.config/popular-zsh" \
 curl -fsSL https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/install.sh | zsh
 ```
 
-## Custom command file
+## Command and secrets files
 
 By default, saved commands live in:
 
@@ -49,10 +68,17 @@ By default, saved commands live in:
 ~/.popular_commands
 ```
 
-You can change that with:
+Secrets default to:
+
+```zsh
+${POPULAR_COMMANDS_FILE}.secrets
+```
+
+You can change either:
 
 ```zsh
 export POPULAR_COMMANDS_FILE=/path/to/your/file
+export POPULAR_SECRETS_FILE=/path/to/your/secrets
 ```
 
-That file is plain text (`name|command` per line). You can copy it, version it, or round-trip it with `pexport` and `pimport` from `popular.zsh`.
+The command file is plain text (`name|command` per line). You can copy it, version it, or round-trip it with `pexport` and `pimport`. **`pexport` does not include the secrets file**—share exports that use `<<placeholders>>` safely after filling secrets only on machines that need them.

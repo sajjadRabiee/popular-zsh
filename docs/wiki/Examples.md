@@ -24,6 +24,23 @@ padd serveo 'python3 -m http.server {{port}}'
 p serveo --port=3000
 ```
 
+## Secrets (`<<placeholders>>`)
+
+Keep tokens out of the command file so `pexport` stays safe to share:
+
+```zsh
+padd notify 'curl -sf -u "<<user>>:<<pass>>" https://hooks.example.com/run'
+print -r 'robot' | psecret -g user
+print -r 'x1y2z3' | psecret -g pass
+p notify
+```
+
+Use per-command overrides only when one bookmark needs a different value:
+
+```zsh
+psecret staging-hook pass   # prompt or pipe value
+```
+
 ## Docker
 
 ```zsh
@@ -62,3 +79,5 @@ Replace everything from a file (use with care):
 ```zsh
 pimport -r ~/Desktop/popular-commands.backup
 ```
+
+After import, if the file contains `<<secrets>>`, the shell may ask **global vs per-command** secret setup (TTY only), then guide you through `psecret`.

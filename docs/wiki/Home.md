@@ -2,20 +2,22 @@
 
 Welcome to the wiki for `popular.zsh`.
 
-`popular.zsh` is a tiny helper for `zsh` that lets you save, run, and template frequently used commands with a small set of memorable shortcuts.
+`popular.zsh` is a tiny helper for `zsh` that lets you save, run, and template frequently used commands with a small set of memorable shortcuts—including optional **secret placeholders** (`<<key>>`) stored outside the shared command file.
 
 ## What it gives you
 
 - `padd` to save commands
 - `paddh` to save a command from history by event number
-- `p` to run commands
-- `pls` to browse saved commands
-- `premove` to remove entries
-- `pexport` and `pimport` to export or merge saved commands
+- `p` to run commands (with `{{}}`, `[[]]`, and `<< >>` substitution)
+- `pls` to browse saved commands (with template and secret hints)
+- `premove` to remove entries (and per-command secret rows)
+- `pexport` and `pimport` to export or merge saved commands (`pexport` never exports secrets)
+- `psecret` / `psecret --global` to fill secret placeholders
 - `pedit` / `pedit <name>` to edit the whole file or one command (default editor: vim)
 - `phelp` for formatted help in the terminal
 - tab completion for saved names (`p`, `premove`, `pedit`, `pls` filters)
 - tab completion for template options like `--port=` or `--class=`
+- modular sources under `lib/popular/` loaded from `popular.zsh`
 
 ## Quick Start
 

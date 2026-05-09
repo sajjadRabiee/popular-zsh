@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220" role="img" aria-labelledby="popularTitle popularDesc">
+  <title id="popularTitle">popular.zsh</title>
+  <desc id="popularDesc">Bookmark, template, and run zsh commands with optional secret placeholders.</desc>
+  <defs>
+    <linearGradient id="popularBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e2030"/>
+      <stop offset="100%" stop-color="#24283b"/>
+    </linearGradient>
+    <linearGradient id="popularAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7aa2f7"/>
+      <stop offset="50%" stop-color="#bb9af7"/>
+      <stop offset="100%" stop-color="#7dcfff"/>
+    </linearGradient>
+    <filter id="popularShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="720" height="220" rx="14" fill="url(#popularBg)"/>
+  <rect x="24" y="24" width="672" height="172" rx="10" fill="#16161e" stroke="#3b4261" stroke-width="1"/>
+  <rect x="24" y="24" width="672" height="36" rx="10" fill="#292e42"/>
+  <circle cx="44" cy="42" r="6" fill="#f7768e"/>
+  <circle cx="64" cy="42" r="6" fill="#e0af68"/>
+  <circle cx="84" cy="42" r="6" fill="#9ece6a"/>
+  <text x="110" y="47" fill="#a9b1d6" font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace" font-size="13">zsh</text>
+  <text x="340" y="110" fill="#c0caf5" font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace" font-size="34" font-weight="700">popular.zsh</text>
+  <text x="340" y="142" fill="#7aa2f7" font-family="ui-serif,Georgia,serif" font-size="15" font-style="italic">bookmark &#183; template &#183; run</text>
+  <text x="340" y="174" fill="#565f89" font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace" font-size="12">padd &#183; p &#183; pls &#183; &lt;&lt;secrets&gt;&gt; &#183; psecret -g</text>
+  <path d="M40 170 L40 130 L56 130 L56 114 L88 114 L88 130 L104 130 L104 170 Z" fill="none" stroke="url(#popularAccent)" stroke-width="2.5" stroke-linejoin="round" filter="url(#popularShadow)"/>
+  <text x="52" y="154" fill="#bb9af7" font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace" font-size="28" font-weight="700">p</text>
+</svg>
