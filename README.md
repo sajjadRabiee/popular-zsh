@@ -4,6 +4,8 @@
 
 Tiny `zsh` shortcuts for saving, running, and templating your most-used commands—with optional **secret placeholders** kept out of exported command files.
 
+Contributions are welcome; see [`CONTRIBUTING.md`](CONTRIBUTING.md). For responsible disclosure of security issues, see [`SECURITY.md`](SECURITY.md).
+
 - Preview image: `assets/social-preview.png`
 - Banner (SVG): [`assets/popular.svg`](assets/popular.svg)
 - Wiki docs: [`docs/wiki/`](docs/wiki/)
@@ -54,6 +56,8 @@ curl -fsSL https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/insta
 ```
 
 This mirrors the repo under `~/.popular-zsh/` (including `lib/popular/*.zsh`). Override the GitHub root with `POPULAR_REPO_BASE` if needed.
+
+**Trust:** piping remote scripts into your shell runs whatever the URL returns. To reduce risk, clone the repo (or save `install.sh`, inspect it, then run it with `zsh install.sh`). Only point `POPULAR_REPO_BASE` at origins you trust—`pupdate` downloads from the same base.
 
 After install, upgrade in place with **`pupdate`** (same `POPULAR_REPO_BASE`), then run **`source ~/.popular-zsh/popular.zsh`** (or your path).
 
@@ -181,7 +185,7 @@ Secrets live in a **separate** file (default):
 ${POPULAR_COMMANDS_FILE}.secrets
 ```
 
-Rows are tab-separated; the file is chmod `600` when created. **`pexport` only writes the command store**, never the secrets file—safe to share exports that use `<<placeholders>>`.
+Rows are tab-separated; the file is chmod `600` when created. Values are **not** strongly encrypted—protection is mainly filesystem permissions and host security. **`pexport` only writes the command store**, never the secrets file—safe to share exports that use `<<placeholders>>`.
 
 You can override paths with:
 
@@ -190,11 +194,21 @@ export POPULAR_COMMANDS_FILE=/path/to/your/file
 export POPULAR_SECRETS_FILE=/path/to/your/secrets
 ```
 
+## Contributing
+
+Bug reports, docs fixes, and pull requests are appreciated. Start with [`CONTRIBUTING.md`](CONTRIBUTING.md) for local setup, the install/`pupdate` path sync rule, and review expectations.
+
+## Security
+
+Short version: saved shortcuts are executed with **`eval`** after template expansion—treat your commands file and **`pimport`** sources like code you trust. Secrets are permission-protected, not encrypted at rest. Details and reporting steps are in [`SECURITY.md`](SECURITY.md).
+
 ## Project files
 
 - [`popular.zsh`](popular.zsh) — bootstrap (sources `lib/popular/*.zsh`)
 - [`install.sh`](install.sh)
 - [`lib/popular/`](lib/popular/) — UI, store, templates, secrets, per-command modules, completion
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to contribute
+- [`SECURITY.md`](SECURITY.md) — threat model and vulnerability reporting
 - [`assets/popular.svg`](assets/popular.svg) — README banner
 - [`docs/launch-post.md`](docs/launch-post.md)
 - [`docs/wiki/`](docs/wiki/)
