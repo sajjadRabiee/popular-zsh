@@ -18,6 +18,7 @@ Welcome to the wiki for `popular.zsh`.
 - tab completion for saved names (`p`, `premove`, `pedit`, `pls` filters)
 - tab completion for template options like `--port=` or `--class=`
 - modular sources under `lib/popular/` loaded from `popular.zsh`
+- `pupdate` to refresh those files from GitHub
 
 ## Quick Start
 

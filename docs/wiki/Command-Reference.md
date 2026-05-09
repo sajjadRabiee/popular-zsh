@@ -101,6 +101,20 @@ pedit serve        # opens just the saved command for “serve”
 
 Uses **`$EDITOR`**, or **vim** if `EDITOR` is unset. If the editor exits non-zero, changes are not saved. Saving an empty buffer is rejected (use `premove` to delete).
 
+## `pupdate`
+
+Re-download `popular.zsh`, `install.sh`, and every file under `lib/popular/` from GitHub into the same directory as your sourced `popular.zsh` (requires `curl` and the usual `lib/popular/` layout).
+
+```zsh
+pupdate
+```
+
+Uses **`POPULAR_REPO_BASE`** if set (default: `https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main`). Reload after updating:
+
+```zsh
+source ~/.popular-zsh/popular.zsh
+```
+
 ## `phelp`
 
 Show the built-in help (boxed layout, command table, and examples):

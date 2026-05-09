@@ -23,6 +23,7 @@ It gives you:
 - tab completion for saved names (`p`, `premove`, `pedit`, `pls` filters)
 - tab completion for template options like `--class=`
 - tab completion for `psecret` (command names and secret keys)
+- `pupdate` to pull the latest `popular.zsh`, `install.sh`, and `lib/popular/*.zsh` from GitHub
 
 ## Layout
 
@@ -54,6 +55,8 @@ curl -fsSL https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/insta
 
 This mirrors the repo under `~/.popular-zsh/` (including `lib/popular/*.zsh`). Override the GitHub root with `POPULAR_REPO_BASE` if needed.
 
+After install, upgrade in place with **`pupdate`** (same `POPULAR_REPO_BASE`), then run **`source ~/.popular-zsh/popular.zsh`** (or your path).
+
 ## Commands
 
 ```zsh
@@ -67,6 +70,7 @@ pimport [-r|--replace] <file>
 psecret [-g|--global] <secret-key>
 psecret <command-name> <secret-key>
 pedit [name]
+pupdate
 phelp
 ```
 

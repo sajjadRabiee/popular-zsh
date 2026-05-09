@@ -117,6 +117,6 @@ if [[ -o interactive ]]; then
     compdef _popular_complete_pedit pedit
     compdef _popular_complete_psecret psecret
     compdef _files pexport pimport
-    compdef _nothing paddh
+    compdef _nothing paddh pupdate
   fi
 fi

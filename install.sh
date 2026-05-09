@@ -9,6 +9,7 @@ ZSHRC_FILE="${ZDOTDIR:-$HOME}/.zshrc"
 
 typeset -a POPULAR_MODULE_PATHS=(
   popular.zsh
+  install.sh
   lib/popular/ui.zsh
   lib/popular/store.zsh
   lib/popular/template.zsh
@@ -18,6 +19,7 @@ typeset -a POPULAR_MODULE_PATHS=(
   lib/popular/cmd-list.zsh
   lib/popular/cmd-io.zsh
   lib/popular/cmd-edit.zsh
+  lib/popular/cmd-update.zsh
   lib/popular/completion.zsh
 )
 
