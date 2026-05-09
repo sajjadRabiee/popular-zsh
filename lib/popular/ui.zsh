@@ -129,11 +129,13 @@ _popular_usage() {
   _popular_usage_sep
   _popular_usage_row "padd <name> <command…>" "Save a command"
   _popular_usage_row "paddh <#> [name]" "Save from history (event # from \`history\`; default name h<#>)"
-  _popular_usage_row "p <name> [args…]" "Run: {{x}} → --x=…; [[x]] → positional; optional {{x:def}} / [[x:def]] defaults in the saved command"
+  _popular_usage_row "p <name> [args…]" "Run: {{x}} → --x=…; [[x]] → positional; <<x>> → secret (see psecret); optional {{x:def}} / [[x:def]] defaults in the saved command"
   _popular_usage_row "pls [needle…]" "List saved commands (optional: filter names, substring, case-insensitive)"
   _popular_usage_row "premove <name>" "Delete a saved command"
-  _popular_usage_row "pexport [file|-]" "Export (\`-\` or empty → stdout)"
-  _popular_usage_row "pimport [-r|--replace] <file>" "Import (merge, or replace store)"
+  _popular_usage_row "pexport [file|-]" "Export commands only (\`-\` or empty → stdout); secrets file is never included"
+  _popular_usage_row "pimport [-r|--replace] <file>" "Import; if <<secrets>> missing, asks global vs per-command (TTY); global values take priority when running \`p\`"
+  _popular_usage_row "psecret [-g|--global] <key>" "Save global <<key>> (${POPULAR_SECRETS_FILE}; used first by \`p\`)"
+  _popular_usage_row "psecret <name> <key>" "Save <<key>> only for <name> (used if no global value)"
   _popular_usage_row "pedit [name]" "Edit store in \${EDITOR:-vim}, or one command’s text"
   _popular_usage_row "phelp" "Show this help"
   _popular_usage_sep

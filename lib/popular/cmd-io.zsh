@@ -11,6 +11,7 @@ premove() {
   _popular_ensure_file
   awk -F'|' -v name="$name" '$1 != name' "$POPULAR_COMMANDS_FILE" > "${POPULAR_COMMANDS_FILE}.tmp"
   mv "${POPULAR_COMMANDS_FILE}.tmp" "$POPULAR_COMMANDS_FILE"
+  _popular_secrets_remove_for_command "$name"
   _popular_info "Removed '$name'"
 }
 
@@ -130,10 +131,12 @@ pimport() {
     ' "$src" > "$tmp"
     [[ -n "$bad" ]] && _popular_warn "pimport: skipped invalid line(s) at: $bad"
     mv "$tmp" "$POPULAR_COMMANDS_FILE"
+    _popular_import_prompt_missing_secrets "$src"
     _popular_info "Replaced commands from '$src'"
     return 0
   fi
 
   _popular_import_merge "$src"
+  _popular_import_prompt_missing_secrets "$src"
   _popular_info "Merged commands from '$src'"
 }

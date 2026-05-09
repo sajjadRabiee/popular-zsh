@@ -17,6 +17,7 @@ p() {
   }
 
   rendered=$(_popular_render_command "$command" "$@") || return 1
+  rendered=$(_popular_substitute_secrets "$name" "$rendered") || return 1
 
   print -r -- "${fg[cyan]}→${reset_color} $rendered"
   eval "$rendered"

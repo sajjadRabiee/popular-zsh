@@ -6,6 +6,7 @@ _popular_emit_template_slots() {
   local -i idx
   local _ce='}}'
   local _be=']]'
+  local _se='>>'
 
   while [[ -n "$line" ]]; do
     if [[ "$line" == '{{'* ]]; then
@@ -54,6 +55,18 @@ _popular_emit_template_slots() {
       else
         print -r -- $'bracket\t'"$pname"
       fi
+    elif [[ "$line" == '<<'* ]]; then
+      rest="${line#'<<'}"
+      idx="${rest[(i)$_se]}"
+      if (( idx > ${#rest} )); then
+        line="${line[2,-1]}"
+        continue
+      fi
+      inner="${rest[1,$((idx - 1))]}"
+      full="<<${inner}>>"
+      line="${line#"$full"}"
+      [[ "$inner" =~ '^[A-Za-z0-9_-]+$' ]] || continue
+      print -r -- $'secret\t'"$inner"
     else
       line="${line[2,-1]}"
     fi
@@ -67,9 +80,9 @@ _popular_build_placeholder_hint_rows() {
   local plain_ref="$3"
   local color_ref="$4"
   local kind pname rest def
-  local -a opt_names=() opt_defs=() arg_names=() arg_defs=()
+  local -a opt_names=() opt_defs=() arg_names=() arg_defs=() secret_names=()
   local -a _ph_plain=() _ph_color=()
-  local -A seen_opt seen_arg
+  local -A seen_opt seen_arg seen_secret
   local dashes vplain vcolor def_plain def_color
   local -i i j dlen
 
@@ -89,6 +102,10 @@ _popular_build_placeholder_hint_rows() {
       seen_opt[$pname]=1
       opt_names+=("$pname")
       opt_defs+=("$def")
+    elif [[ "$kind" == secret ]]; then
+      [[ -n "${seen_secret[$pname]}" ]] && continue
+      seen_secret[$pname]=1
+      secret_names+=("$pname")
     else
       [[ -n "${seen_arg[$pname]}" ]] && continue
       seen_arg[$pname]=1
@@ -97,7 +114,7 @@ _popular_build_placeholder_hint_rows() {
     fi
   done < <(_popular_emit_template_slots "$cmd")
 
-  (( ${#opt_names[@]} + ${#arg_names[@]} == 0 )) && {
+  (( ${#opt_names[@]} + ${#arg_names[@]} + ${#secret_names[@]} == 0 )) && {
     eval "${plain_ref}=()"
     eval "${color_ref}=()"
     return 0
@@ -107,6 +124,11 @@ _popular_build_placeholder_hint_rows() {
     vplain="$1"
     vcolor="$2"
     inner_w=$(( box_w - 4 ))
+    # Plain and vcolor must represent the same visible text so pls outer borders stay aligned.
+    if (( inner_w > 1 && ${#vplain} > inner_w )); then
+      vplain="${vplain[1,$((inner_w - 1))]}…"
+      vcolor="${fg[white]}${vplain}${reset_color}"
+    fi
     pad=$(( inner_w - ${#vplain} ))
     (( pad < 0 )) && pad=0
     _ph_plain+=( "│ ${vplain}$(printf '%*s' $pad '') │" )
@@ -153,6 +175,17 @@ _popular_build_placeholder_hint_rows() {
     done
   fi
 
+  if (( ${#secret_names[@]} > 0 )); then
+    if (( ${#opt_names[@]} > 0 || ${#arg_names[@]} > 0 )); then
+      push_row "" ""
+    fi
+    push_row "--secrets:" "${fg[red]}--secrets:${reset_color}"
+    for (( i = 1; i <= ${#secret_names[@]}; i++ )); do
+      push_row "  • <<${secret_names[i]}>> · psecret -g" \
+        "  ${fg[white]}•${reset_color} ${fg[red]}<<${secret_names[i]}>>${reset_color} ${fg[white]}· psecret -g${reset_color}"
+    done
+  fi
+
   _ph_plain+=( "╰${dashes}╯" )
   _ph_color+=( "${fg[blue]}╰${dashes}╯${reset_color}" )
 
@@ -181,6 +214,7 @@ _popular_render_command() {
   while IFS= read -r line || [[ -n "$line" ]]; do
     [[ -z "$line" ]] && continue
     kind="${line%%$'\t'*}"
+    [[ "$kind" == secret ]] && continue
     rest="${line#*$'\t'}"
     if [[ "$rest" != *$'\t'* ]]; then
       pname="$rest"

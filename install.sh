@@ -12,6 +12,7 @@ typeset -a POPULAR_MODULE_PATHS=(
   lib/popular/ui.zsh
   lib/popular/store.zsh
   lib/popular/template.zsh
+  lib/popular/secrets.zsh
   lib/popular/cmd-add.zsh
   lib/popular/cmd-run.zsh
   lib/popular/cmd-list.zsh

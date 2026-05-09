@@ -8,6 +8,7 @@ _popular_command_encode() {
   local s="$1"
   s=${s//\\/\\\\}
   s=${s//|/\\|}
+  s=${s//$'\t'/\\t}
   s=${s//$'\n'/\\n}
   s=${s//$'\r'/\\r}
   print -r -- "$s"
@@ -25,6 +26,7 @@ _popular_command_decode() {
       case "$esc" in
         '|') out+='|' ;;
         '\\') out+='\' ;;
+        't') out+=$'\t' ;;
         'n') out+=$'\n' ;;
         'r') out+=$'\r' ;;
         *) out+='\'"$esc" ;;

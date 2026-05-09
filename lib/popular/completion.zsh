@@ -72,6 +72,33 @@ _popular_complete_p() {
   fi
 }
 
+_popular_complete_psecret() {
+  local command
+  local -a keys
+
+  if (( CURRENT == 2 )); then
+    compadd -- -g --global
+    _popular_complete_saved_names 'command name'
+    return
+  fi
+
+  if (( CURRENT == 3 )); then
+    if [[ "${words[2]}" == -g || "${words[2]}" == --global ]]; then
+      keys=("${(@f)$(_popular_collect_all_secret_keys)}")
+      (( ${#keys[@]} )) || return 1
+      _describe 'secret key' keys
+      return
+    fi
+    command=$(_popular_get_command "${words[2]}") || return 1
+    keys=("${(@f)$(_popular_collect_secret_keys_for_command "$command")}")
+    (( ${#keys[@]} )) || return 1
+    _describe 'secret key' keys
+    return
+  fi
+
+  return 1
+}
+
 if [[ -o interactive ]]; then
   if ! whence compdef >/dev/null 2>&1; then
     autoload -Uz compinit
@@ -88,6 +115,7 @@ if [[ -o interactive ]]; then
       _popular_complete_saved_names
     }
     compdef _popular_complete_pedit pedit
+    compdef _popular_complete_psecret psecret
     compdef _files pexport pimport
     compdef _nothing paddh
   fi
