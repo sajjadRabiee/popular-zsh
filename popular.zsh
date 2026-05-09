@@ -320,11 +320,18 @@ _popular_emit_template_slots() {
   done
 }
 
-_popular_placeholder_summary() {
-  local command="$1"
+_popular_build_placeholder_hint_rows() {
+  emulate -L zsh -o no_xtrace 2>/dev/null || setopt local_options no_xtrace 2>/dev/null
+  local cmd="$1"
+  local -i box_w="$2"
+  local plain_ref="$3"
+  local color_ref="$4"
   local kind pname rest def
-  local -a items=()
-  local -A seen
+  local -a opt_names=() opt_defs=() arg_names=() arg_defs=()
+  local -a _ph_plain=() _ph_color=()
+  local -A seen_opt seen_arg
+  local dashes vplain vcolor def_plain def_color
+  local -i i j dlen
 
   while IFS= read -r line || [[ -n "$line" ]]; do
     [[ -z "$line" ]] && continue
@@ -332,29 +339,85 @@ _popular_placeholder_summary() {
     rest="${line#*$'\t'}"
     if [[ "$rest" != *$'\t'* ]]; then
       pname="$rest"
-      [[ -n "${seen[$pname]}" ]] && continue
-      seen[$pname]=1
-      if [[ "$kind" == bracket ]]; then
-        items+=("[[${pname}]]")
-      else
-        items+=("{{${pname}}}")
-      fi
+      def=""
     else
       pname="${rest%%$'\t'*}"
       def="${rest#*$'\t'}"
-      [[ -n "${seen[$pname]}" ]] && continue
-      seen[$pname]=1
-      if [[ "$kind" == bracket ]]; then
-        items+=("[[${pname}:${def}]]")
-      else
-        items+=("{{${pname}:${def}}}")
-      fi
     fi
-  done < <(_popular_emit_template_slots "$command")
+    if [[ "$kind" == curly ]]; then
+      [[ -n "${seen_opt[$pname]}" ]] && continue
+      seen_opt[$pname]=1
+      opt_names+=("$pname")
+      opt_defs+=("$def")
+    else
+      [[ -n "${seen_arg[$pname]}" ]] && continue
+      seen_arg[$pname]=1
+      arg_names+=("$pname")
+      arg_defs+=("$def")
+    fi
+  done < <(_popular_emit_template_slots "$cmd")
 
-  if (( ${#items[@]} > 0 )); then
-    print -r -- "${(j:, :)items}"
+  (( ${#opt_names[@]} + ${#arg_names[@]} == 0 )) && {
+    eval "${plain_ref}=()"
+    eval "${color_ref}=()"
+    return 0
+  }
+
+  push_row() {
+    vplain="$1"
+    vcolor="$2"
+    inner_w=$(( box_w - 4 ))
+    pad=$(( inner_w - ${#vplain} ))
+    (( pad < 0 )) && pad=0
+    _ph_plain+=( "│ ${vplain}$(printf '%*s' $pad '') │" )
+    _ph_color+=( "${fg[blue]}│${reset_color} ${vcolor}$(printf '%*s' $pad '') ${fg[blue]}│${reset_color}" )
+  }
+
+  dlen=$(( box_w - 2 ))
+  dashes=""
+  for (( j = 1; j <= dlen; j++ )); do dashes+="─"; done
+  _ph_plain+=( "╭${dashes}╮" )
+  _ph_color+=( "${fg[blue]}╭${dashes}╮${reset_color}" )
+
+  if (( ${#opt_names[@]} > 0 )); then
+    push_row "--options:" "${fg[yellow]}--options:${reset_color}"
+    for (( i = 1; i <= ${#opt_names[@]}; i++ )); do
+      push_row "  • ${opt_names[i]}" "  ${fg[white]}•${reset_color} ${fg[cyan]}${opt_names[i]}${reset_color}"
+      def_plain="${opt_defs[i]:-—}"
+      if [[ "$def_plain" == "—" ]]; then
+        def_color="${fg[white]}—${reset_color}"
+      else
+        def_color="${fg[green]}${def_plain}${reset_color}"
+      fi
+      push_row "    default: ${def_plain}" \
+        "    ${fg[white]}default:${reset_color} ${def_color}"
+    done
   fi
+
+  if (( ${#opt_names[@]} > 0 && ${#arg_names[@]} > 0 )); then
+    push_row "" ""
+  fi
+
+  if (( ${#arg_names[@]} > 0 )); then
+    push_row "--arguments:" "${fg[yellow]}--arguments:${reset_color}"
+    for (( i = 1; i <= ${#arg_names[@]}; i++ )); do
+      push_row "  • ${arg_names[i]}" "  ${fg[white]}•${reset_color} ${fg[cyan]}${arg_names[i]}${reset_color}"
+      def_plain="${arg_defs[i]:-—}"
+      if [[ "$def_plain" == "—" ]]; then
+        def_color="${fg[white]}—${reset_color}"
+      else
+        def_color="${fg[green]}${def_plain}${reset_color}"
+      fi
+      push_row "    default: ${def_plain}" \
+        "    ${fg[white]}default:${reset_color} ${def_color}"
+    done
+  fi
+
+  _ph_plain+=( "╰${dashes}╯" )
+  _ph_color+=( "${fg[blue]}╰${dashes}╯${reset_color}" )
+
+  set -A "$plain_ref" "${_ph_plain[@]}"
+  set -A "$color_ref" "${_ph_color[@]}"
 }
 
 _popular_render_command() {
@@ -580,10 +643,10 @@ p() {
 
 pls() {
   emulate -L zsh -o no_xtrace 2>/dev/null || setopt local_options no_xtrace 2>/dev/null
-  local count max_name line name command options preview name_pad empty_pad hints display
+  local count max_name line name command preview name_pad empty_pad
   local first gap needle nlow ilow
-  local -i pw oi shown
-  local -a rows=() ochunks=() filtered=()
+  local -i pw oi shown hi
+  local -a rows=() ochunks=() filtered=() hint_plain hint_color
 
   _popular_ensure_file
   if [[ ! -s "$POPULAR_COMMANDS_FILE" ]]; then
@@ -642,18 +705,17 @@ pls() {
   for line in "${rows[@]}"; do
     name="${line%%|*}"
     command="${line#*|}"
-    hints=$(_popular_placeholder_summary "$command")
-    preview=$(printf '%s\n' "$command" | sed -E -e 's/\{\{[A-Za-z0-9_-]+(:[^}]*)?\}\}/<value>/g' -e 's/\[\[[A-Za-z0-9_-]+(:[^\]]*)?\]\]/<value>/g')
-    display="$preview"
-    [[ -n "$hints" ]] && display="$preview"$'\n'"$hints"
+    preview="$command"
     name_pad=$(printf "%-${max_name}s" "$name")
     empty_pad=$(printf "%-${max_name}s" "")
 
     pw=$(( _POPULAR_BOX_INNER - 4 - max_name ))
     (( pw < 12 )) && pw=12
 
+    _popular_build_placeholder_hint_rows "$command" "$pw" hint_plain hint_color
+
     first=1
-    ochunks=("${(@f)$( _popular_wrap_fill "$display" "$pw" )}")
+    ochunks=("${(@f)$( _popular_wrap_fill "$preview" "$pw" )}")
     for (( oi = 1; oi <= ${#ochunks}; oi++ )); do
       [[ -z "${ochunks[oi]//[[:space:]]/}" ]] && continue
       if (( first )); then
@@ -666,6 +728,19 @@ pls() {
           " ${empty_pad} │ ${ochunks[oi]}" \
           " ${fg[white]}${empty_pad}${reset_color} ${fg[blue]}│${reset_color} ${ochunks[oi]}"
       fi
+    done
+
+    for (( hi = 1; hi <= ${#hint_plain}; hi++ )); do
+      if (( first )); then
+        _popular_box_inner_line \
+          " ${name_pad} │ ${hint_plain[hi]}" \
+          " ${fg[green]}${name_pad}${reset_color} ${fg[blue]}│${reset_color} ${hint_color[hi]}"
+      else
+        _popular_box_inner_line \
+          " ${empty_pad} │ ${hint_plain[hi]}" \
+          " ${fg[white]}${empty_pad}${reset_color} ${fg[blue]}│${reset_color} ${hint_color[hi]}"
+      fi
+      first=0
     done
 
     if (( first )); then
