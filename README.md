@@ -9,10 +9,13 @@ Tiny `zsh` shortcuts for saving, running, and templating your most-used commands
 It gives you:
 
 - `padd` to save commands
+- `paddh` to save a line from your shell history by event number
 - `p` to run them
 - `pls` to list them in a clean view
 - `premove` to remove them
-- `pedit` to edit the storage file directly
+- `pexport` / `pimport` to back up, share, or move your saved commands between machines
+- `pedit` / `pedit <name>` to edit the whole store or one command’s text (default editor: **vim**)
+- `phelp` for a formatted reference in the terminal
 - tab completion for command names
 - tab completion for template options like `--class=`
 
@@ -42,10 +45,13 @@ curl -fsSL https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/insta
 
 ```zsh
 padd <name> <command...>
+paddh <history#> [name]
 p <name> [options...]
 pls
 premove <name>
-pedit
+pexport [file|-]
+pimport [-r|--replace] <file>
+pedit [name]
 phelp
 ```
 
@@ -58,48 +64,73 @@ padd gs git status
 p gs
 ```
 
-Save a templated command:
+Save a templated command — **`[[port]]`** is a positional port; **`{{port}}`** uses `--port=`:
 
 ```zsh
-padd serve 'python3 -m http.server {{port}}'
+padd serve 'python3 -m http.server [[port]]'
+p serve 8000
+
+padd serveo 'python3 -m http.server {{port}}'
+p serveo --port=8000
 ```
 
-Run it with a variable:
+Save something you already ran (use the number from the first column of `history`):
 
 ```zsh
-p serve --port=8000
+paddh 233
+paddh 233 gs
+paddh -1
+```
+
+Export and import the same plain-text store (`name|command` lines):
+
+```zsh
+pexport ~/popular-backup.txt
+pimport ~/popular-backup.txt
+pimport -r ~/popular-backup.txt   # replace entire store
 ```
 
 ## Templates
 
-You can use placeholders inside saved commands:
+Placeholders use **different** syntax for different calling styles:
+
+- **`{{name}}`** — pass values as long options: `--name=value` (or `--name value`). Tab completion suggests these flags.
+- **`[[name]]`** — pass values as **plain positional** arguments to `p`, in **left-to-right order** of each **distinct** `[[name]]` the first time it appears. Repeating the same `[[name]]` in the command still uses **one** value.
 
 ```zsh
-{{class}}
-{{env}}
-{{module_id}}
+padd serve 'python3 -m http.server [[port]]'
+p serve 8000
+
+padd serve2 'python3 -m http.server {{port}}'
+p serve2 --port=8000
 ```
 
-Each placeholder becomes a runtime option:
+Mixed example (positional args first in the template’s bracket order, then options):
 
-- `{{class}}` becomes `--class`
-- `{{env}}` becomes `--env`
-- `{{module_id}}` becomes `--module_id`
+```zsh
+padd hit 'curl -s http://[[host]]:{{port}}/'
+p hit localhost --port=8080
+```
 
-Example:
+All-`{{}}` example:
 
 ```zsh
 padd open-model 'my-tool generate --entity_class={{class}} --env={{env}}'
 p open-model --class='my.app.models.User' --env=dev
 ```
 
+### Quotes, pipes, and newlines
+
+When you call `padd`, wrap the command in **single quotes** if it contains double quotes, spaces, or shell operators. For example: `padd x 'git commit -m "fix"'`. Commands are stored in a `name|command` file; **`|`**, **`\`**, and **newlines** in the command are escaped automatically so pipes and quotes round-trip. If you edit the file by hand, use `\|` for a literal pipe in the command text.
+
 ## Completion
 
 If `compinit` is available, the script enables completion automatically:
 
 - `p <TAB>` suggests saved command names
-- `premove <TAB>` suggests saved command names
-- `p serve <TAB>` suggests template options like `--port=`
+- `premove <TAB>` and `pedit <TAB>` suggest saved command names
+- `pexport` and `pimport <TAB>` suggest file paths
+- `p serve <TAB>` suggests `--name=` only for **`{{name}}`** placeholders (not for `[[name]]`)
 
 ## Storage
 
@@ -108,6 +139,8 @@ Saved commands live in:
 ```zsh
 ~/.popular_commands
 ```
+
+Each line is `name|command`. The command part may contain escape sequences (`\\`, `\|`, `\n`) produced by `popular.zsh` so the line stays unambiguous.
 
 You can override that path with:
 

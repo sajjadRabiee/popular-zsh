@@ -8,6 +8,16 @@ Save a command:
 padd gs git status
 ```
 
+## `paddh`
+
+Save a command line from zsh history by event number (the number shown in the first column of `history`). Only works in an interactive shell.
+
+```zsh
+paddh 233           # default name h233
+paddh 233 gs        # save event 233 as gs
+paddh -1            # previous command relative to this line (default name h-1)
+```
+
 ## `p`
 
 Run a saved command:
@@ -18,8 +28,12 @@ p gs
 
 Run a templated command:
 
+- **`[[name]]`** in the saved command → pass values as positionals, e.g. `p serve 8000`.
+- **`{{name}}`** → pass `--name=value`, e.g. `p serve --port=8000`.
+
 ```zsh
-p serve --port=8000
+p serve 8000
+p other --port=8000
 ```
 
 ## `pls`
@@ -38,17 +52,42 @@ Delete a saved command:
 premove gs
 ```
 
-## `pedit`
+## `pexport`
 
-Open the command file in your editor:
+Write your saved commands to a file, or print them to stdout. Format is one `name|command` per line (same as the backing file).
 
 ```zsh
-pedit
+pexport -
+pexport ~/backup.popular.txt
 ```
+
+With no argument, or with `-`, output goes to stdout.
+
+## `pimport`
+
+Merge commands from a file, or replace the whole store.
+
+```zsh
+pimport ~/backup.popular.txt      # merge (same names are overwritten)
+pimport -r ~/backup.popular.txt    # replace entire store
+```
+
+Invalid lines (no `|` separator, empty name) are skipped with a warning.
+
+## `pedit`
+
+Edit the whole backing file (same `name|command` format as on disk), or edit **only one** bookmark’s command text in a scratch buffer:
+
+```zsh
+pedit              # opens ~/.popular_commands (or $POPULAR_COMMANDS_FILE)
+pedit serve        # opens just the saved command for “serve”
+```
+
+Uses **`$EDITOR`**, or **vim** if `EDITOR` is unset. If the editor exits non-zero, changes are not saved. Saving an empty buffer is rejected (use `premove` to delete).
 
 ## `phelp`
 
-Show the built-in help:
+Show the built-in help (boxed layout, command table, and examples):
 
 ```zsh
 phelp

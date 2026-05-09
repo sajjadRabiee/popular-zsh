@@ -12,3 +12,5 @@ There are bigger tools for shell history, snippets, and command search.
 It is intentionally simple.
 
 That simplicity is the feature.
+
+Because the store is a plain text file and there are `pexport` / `pimport` helpers, you can treat favorites like tiny reusable scripts without adopting a heavier toolchain.

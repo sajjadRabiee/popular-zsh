@@ -7,10 +7,13 @@ Welcome to the wiki for `popular.zsh`.
 ## What it gives you
 
 - `padd` to save commands
+- `paddh` to save a command from history by event number
 - `p` to run commands
 - `pls` to browse saved commands
 - `premove` to remove entries
-- `pedit` to edit the command file directly
+- `pexport` and `pimport` to export or merge saved commands
+- `pedit` / `pedit <name>` to edit the whole file or one command (default editor: vim)
+- `phelp` for formatted help in the terminal
 - tab completion for command names
 - tab completion for template options like `--port=` or `--class=`
 

@@ -54,3 +54,5 @@ You can change that with:
 ```zsh
 export POPULAR_COMMANDS_FILE=/path/to/your/file
 ```
+
+That file is plain text (`name|command` per line). You can copy it, version it, or round-trip it with `pexport` and `pimport` from `popular.zsh`.

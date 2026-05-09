@@ -9,10 +9,13 @@ It started from a simple idea:
 That became a tiny workflow:
 
 - `padd` to save commands
+- `paddh` to grab a line from history by event number
 - `p` to run them
 - `pls` to browse them
 - `premove` to delete them
+- `pexport` / `pimport` to move or merge saved commands as plain text
 - `pedit` to edit them directly
+- `phelp` for a readable command reference in the terminal
 
 Then it grew a little in the right direction:
 
