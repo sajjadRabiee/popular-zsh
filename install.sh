@@ -2,13 +2,31 @@
 
 set -euo pipefail
 
-REPO_URL="${POPULAR_REPO_URL:-https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/popular.zsh}"
+REPO_BASE="${POPULAR_REPO_BASE:-https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main}"
 INSTALL_DIR="${POPULAR_INSTALL_DIR:-$HOME/.popular-zsh}"
 TARGET_FILE="$INSTALL_DIR/popular.zsh"
 ZSHRC_FILE="${ZDOTDIR:-$HOME}/.zshrc"
 
-mkdir -p "$INSTALL_DIR"
-curl -fsSL "$REPO_URL" -o "$TARGET_FILE"
+typeset -a POPULAR_MODULE_PATHS=(
+  popular.zsh
+  lib/popular/ui.zsh
+  lib/popular/store.zsh
+  lib/popular/template.zsh
+  lib/popular/cmd-add.zsh
+  lib/popular/cmd-run.zsh
+  lib/popular/cmd-list.zsh
+  lib/popular/cmd-io.zsh
+  lib/popular/cmd-edit.zsh
+  lib/popular/completion.zsh
+)
+
+mkdir -p "$INSTALL_DIR/lib/popular"
+
+for rel in "${POPULAR_MODULE_PATHS[@]}"; do
+  out="$INSTALL_DIR/$rel"
+  mkdir -p "${out:h}"
+  curl -fsSL "$REPO_BASE/$rel" -o "$out"
+done
 
 if ! grep -Fq "source $TARGET_FILE" "$ZSHRC_FILE" 2>/dev/null; then
   {
