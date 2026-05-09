@@ -30,10 +30,8 @@ source ~/.zshrc
 
 ### Curl install
 
-After this repo is pushed to GitHub, you will be able to install it with:
-
 ```zsh
-curl -fsSL https://raw.githubusercontent.com/USERNAME/REPO/main/install.sh | zsh
+curl -fsSL https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/install.sh | zsh
 ```
 
 ## Commands
@@ -52,20 +50,20 @@ phelp
 Save and run a simple command:
 
 ```zsh
-padd pricing-test ./bin/digikala-pricing/cli.sh supernova:pricing:test:command
-p pricing-test
+padd gs git status
+p gs
 ```
 
 Save a templated command:
 
 ```zsh
-padd pcatmap './bin/digikala-pricing/cli.sh supernova:entity:create:schema:from:entities get-only-one --entity_class={{class}}'
+padd serve 'python3 -m http.server {{port}}'
 ```
 
 Run it with a variable:
 
 ```zsh
-p pcatmap --class='Digikala\Supernova\Digikala\Nagini\Entity\Category\CategoryMappingEntity'
+p serve --port=8000
 ```
 
 ## Templates
@@ -87,8 +85,8 @@ Each placeholder becomes a runtime option:
 Example:
 
 ```zsh
-padd db-change './bin/digikala-admin/cli.sh supernova:switch:db:config:command {{env}} sajjad.rabiee YOUR_PASSWORD'
-p db-change --env=prod
+padd open-model 'my-tool generate --entity_class={{class}} --env={{env}}'
+p open-model --class='my.app.models.User' --env=dev
 ```
 
 ## Completion
@@ -97,7 +95,7 @@ If `compinit` is available, the script enables completion automatically:
 
 - `p <TAB>` suggests saved command names
 - `premove <TAB>` suggests saved command names
-- `p pcatmap <TAB>` suggests template options like `--class=`
+- `p serve <TAB>` suggests template options like `--port=`
 
 ## Storage
 
@@ -117,3 +115,4 @@ export POPULAR_COMMANDS_FILE=/path/to/your/file
 
 - `popular.zsh`
 - `install.sh`
+- `docs/launch-post.md`

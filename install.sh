@@ -2,17 +2,10 @@
 
 set -euo pipefail
 
-REPO_URL="${POPULAR_REPO_URL:-}"
+REPO_URL="${POPULAR_REPO_URL:-https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/popular.zsh}"
 INSTALL_DIR="${POPULAR_INSTALL_DIR:-$HOME/.popular-zsh}"
 TARGET_FILE="$INSTALL_DIR/popular.zsh"
 ZSHRC_FILE="${ZDOTDIR:-$HOME}/.zshrc"
-
-if [[ -z "$REPO_URL" ]]; then
-  echo "Set POPULAR_REPO_URL before running install.sh."
-  echo "Example:"
-  echo "  POPULAR_REPO_URL=https://raw.githubusercontent.com/USERNAME/REPO/main/popular.zsh curl -fsSL https://raw.githubusercontent.com/USERNAME/REPO/main/install.sh | zsh"
-  exit 1
-fi
 
 mkdir -p "$INSTALL_DIR"
 curl -fsSL "$REPO_URL" -o "$TARGET_FILE"

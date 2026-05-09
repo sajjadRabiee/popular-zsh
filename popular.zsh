@@ -18,9 +18,9 @@ _popular_usage() {
   print
   print -r -- "${fg[white]}Examples${reset_color}"
   print "  padd gs git status"
-  print "  padd pcatmap './bin/digikala-pricing/cli.sh ... --entity_class={{class}}'"
+  print "  padd serve 'python3 -m http.server {{port}}'"
   print "  p gs"
-  print "  p pcatmap --class='Digikala\\\\Supernova\\\\Foo\\\\BarEntity'"
+  print "  p serve --port=8000"
 }
 
 _popular_ensure_file() {
