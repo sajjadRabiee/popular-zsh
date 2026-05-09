@@ -2,6 +2,7 @@
 
 Tiny `zsh` shortcuts for saving, running, and templating your most-used commands.
 
+- Preview image: `assets/social-preview.png`
 - Wiki docs: `docs/wiki/`
 - Launch post: `docs/launch-post.md`
 

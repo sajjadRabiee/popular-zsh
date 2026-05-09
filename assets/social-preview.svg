@@ -1,0 +1,52 @@
+<svg width="1280" height="640" viewBox="0 0 1280 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="96" y1="72" x2="1184" y2="568" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#081826"/>
+      <stop offset="1" stop-color="#12344A"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="180" y1="170" x2="810" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6EE7F9"/>
+      <stop offset="1" stop-color="#7CFFB2"/>
+    </linearGradient>
+    <filter id="blur" x="0" y="0" width="1280" height="640" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="640" rx="28" fill="#06111B"/>
+  <rect x="28" y="28" width="1224" height="584" rx="24" fill="url(#bg)"/>
+
+  <g filter="url(#blur)" opacity="0.45">
+    <circle cx="240" cy="120" r="130" fill="#0EA5E9"/>
+    <circle cx="1090" cy="500" r="170" fill="#22C55E"/>
+    <circle cx="900" cy="140" r="120" fill="#38BDF8"/>
+  </g>
+
+  <rect x="102" y="92" width="200" height="42" rx="21" fill="#0B2334" stroke="#214B67"/>
+  <text x="134" y="119" fill="#A5F3FC" font-family="Verdana, DejaVu Sans, sans-serif" font-size="22" font-weight="700">popular.zsh</text>
+
+  <text x="98" y="228" fill="white" font-family="Verdana, DejaVu Sans, sans-serif" font-size="76" font-weight="700">Save your</text>
+  <text x="98" y="315" fill="url(#accent)" font-family="Verdana, DejaVu Sans, sans-serif" font-size="76" font-weight="700">favorite shell commands</text>
+  <text x="98" y="402" fill="white" font-family="Verdana, DejaVu Sans, sans-serif" font-size="76" font-weight="700">and run them fast.</text>
+
+  <text x="102" y="470" fill="#B7C7D5" font-family="Verdana, DejaVu Sans, sans-serif" font-size="28">Tiny zsh shortcuts for saved commands, templates, and autocomplete.</text>
+
+  <rect x="98" y="514" width="176" height="54" rx="14" fill="#0B2334" stroke="#2A5A79"/>
+  <text x="127" y="549" fill="#E0F2FE" font-family="Menlo, Monaco, monospace" font-size="26">padd gs git status</text>
+
+  <rect x="820" y="120" width="344" height="368" rx="22" fill="#091A28" stroke="#25465F"/>
+  <rect x="848" y="158" width="288" height="42" rx="12" fill="#0E2536"/>
+  <text x="876" y="186" fill="#A5F3FC" font-family="Verdana, DejaVu Sans, sans-serif" font-size="24" font-weight="700">Saved commands</text>
+
+  <text x="858" y="246" fill="#7CFFB2" font-family="Menlo, Monaco, monospace" font-size="27">gs</text>
+  <text x="948" y="246" fill="#E5EEF6" font-family="Menlo, Monaco, monospace" font-size="27">git status</text>
+
+  <text x="858" y="298" fill="#7CFFB2" font-family="Menlo, Monaco, monospace" font-size="27">serve</text>
+  <text x="948" y="298" fill="#E5EEF6" font-family="Menlo, Monaco, monospace" font-size="27">python3 -m http.server</text>
+
+  <text x="858" y="350" fill="#7CFFB2" font-family="Menlo, Monaco, monospace" font-size="27">pcatmap</text>
+  <text x="858" y="388" fill="#FDE68A" font-family="Menlo, Monaco, monospace" font-size="24">options: --class=</text>
+
+  <rect x="846" y="430" width="180" height="38" rx="10" fill="#102B3F"/>
+  <text x="875" y="456" fill="#D1FAE5" font-family="Menlo, Monaco, monospace" font-size="23">p serve --port=8000</text>
+</svg>
