@@ -4,7 +4,7 @@
 
 Tiny `zsh` shortcuts for saving, running, and templating your most-used commands—with optional **secret placeholders** kept out of exported command files.
 
-Contributions are welcome; see [`CONTRIBUTING.md`](CONTRIBUTING.md). For responsible disclosure of security issues, see [`SECURITY.md`](SECURITY.md).
+Contributions are welcome; see [`CONTRIBUTING.md`](CONTRIBUTING.md). For responsible disclosure of security issues, see [`SECURITY.md`](SECURITY.md). See [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for a list of contributors.
 
 - Preview image: `assets/social-preview.png`
 - Banner (SVG): [`assets/popular.svg`](assets/popular.svg)
