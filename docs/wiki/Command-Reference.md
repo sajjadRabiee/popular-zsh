@@ -80,7 +80,7 @@ If the imported lines use **`<<secret>>`** placeholders and some values are stil
 
 ## `psecret`
 
-Store a value for a `<<key>>` placeholder (stdin or hidden prompt).
+Store a value for a `<<key>>` placeholder (stdin or hidden prompt). Values are **encrypted at rest** with AES-256-CBC (openssl, PBKDF2) under a master password you set the first time you use secrets in a session.
 
 ```zsh
 print -r 'value' | psecret mycmd api-token   # only for bookmark mycmd
@@ -88,7 +88,29 @@ print -r 'value' | psecret -g api-token      # global (preferred when running p)
 psecret -g username                          # prompt if stdin is a TTY
 ```
 
+On first use in a session, you will be prompted for your master password. The password is cached in memory for the rest of that shell session and is never written to disk. Run `plock` to clear it.
+
 Keys must match letters, digits, `_`, or `-`. The reserved bucket name `__global__` is internal; use `-g` / `--global` instead of typing it as a command name.
+
+## `plock`
+
+Clear the cached master password from the current shell session. The next command that reads or writes a secret will prompt for the password again.
+
+```zsh
+plock
+```
+
+Use this when stepping away from a shared terminal or before handing off your session.
+
+## `psecret-migrate`
+
+Migrate a v1 secrets file (plain-text values) to the v2 AES-256-CBC encrypted format. Run this once after upgrading from an older version of popular.zsh.
+
+```zsh
+psecret-migrate
+```
+
+You will be prompted for your master password. Each value is re-encrypted and the old file is saved as `<secrets-file>.bak`. Remove the backup once you have verified the migration.
 
 ## `pedit`
 

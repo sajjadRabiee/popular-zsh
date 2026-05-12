@@ -1,5 +1,11 @@
 # Installation
 
+## Requirements
+
+- **zsh** (macOS ships it; Linux: `apt install zsh` or `brew install zsh`)
+- **openssl** — required for secret encryption (AES-256-CBC). Available by default on macOS; on Linux: `apt install openssl` or `brew install openssl`.
+- `curl` — for the one-line install and `pupdate`
+
 ## One-line install
 
 ```zsh
@@ -78,4 +84,6 @@ export POPULAR_COMMANDS_FILE=/path/to/your/file
 export POPULAR_SECRETS_FILE=/path/to/your/secrets
 ```
 
-The command file is plain text (`name|command` per line). You can copy it, version it, or round-trip it with `pexport` and `pimport`. **`pexport` does not include the secrets file**—share exports that use `<<placeholders>>` safely after filling secrets only on machines that need them.
+The command file is plain text (`name|command` per line). You can copy it, version it, or round-trip it with `pexport` and `pimport`. **`pexport` does not include the secrets file** — share exports that use `<<placeholders>>` safely after filling secrets only on machines that need them.
+
+Secret values are **encrypted at rest** with AES-256-CBC (openssl, PBKDF2). A master password is prompted on first use in each shell session and cached in memory. If you have an existing v1 plain-text secrets file, run `psecret-migrate` once to re-encrypt it.

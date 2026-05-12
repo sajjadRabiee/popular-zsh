@@ -29,11 +29,15 @@ The `p` command builds a string from your saved template and arguments, substitu
 
 **Mitigations:** Restrict access to `POPULAR_COMMANDS_FILE`, only import files you trust, and review imports before using them in sensitive environments.
 
-### Secrets file is not encrypted
+### Secrets are encrypted at rest (AES-256-CBC)
 
-Secret **values** are stored in `POPULAR_SECRETS_FILE` with escaping suitable for the tab-separated format, not strong encryption. Protection relies mainly on **filesystem permissions** (the tool attempts `chmod 600` on the secrets file).
+Secret values are encrypted with **AES-256-CBC** (openssl, PBKDF2) before being written to `POPULAR_SECRETS_FILE`. A master password is prompted on first use in each shell session and cached in the shell's memory (never written to disk). The file is still chmod `600`.
 
-**Mitigations:** Use full-disk encryption and a locked user session where appropriate; treat the secrets file like a password store.
+**Limitations:** Security depends on the strength of your master password and the integrity of your `openssl` installation. AES-CBC with PBKDF2 is not hardware-backed (no TPM/Secure Enclave). If an attacker can run code as you they can intercept the cached key from process memory or hook into your shell session.
+
+**Mitigations:** Use a strong, unique master password; lock the session with `plock` when stepping away; combine with full-disk encryption and a locked user account.
+
+**Migration:** If you have a v1 secrets file (plain-text values, no `# popular.zsh secrets v2` header), run `psecret-migrate` once to re-encrypt it. A `.bak` copy is kept until you remove it.
 
 ### Remote install and `pupdate`
 

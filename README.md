@@ -1,5 +1,7 @@
 # popular.zsh
 
+[![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue?style=flat-square)](https://sajjadrabiee.github.io/popular-zsh/)
+
 ![popular.zsh — bookmark, template, and run commands in zsh](assets/popular.svg)
 
 Tiny `zsh` shortcuts for saving, running, and templating your most-used commands—with optional **secret placeholders** kept out of exported command files.
@@ -19,7 +21,9 @@ It gives you:
 - `pls` to list them in a clean view
 - `premove` to remove them (and their per-command secrets)
 - `pexport` / `pimport` to back up, share, or merge your saved commands (`pexport` never includes secrets)
-- `psecret` / `psecret -g` to store sensitive values in a separate secrets file
+- `psecret` / `psecret -g` to store sensitive values encrypted in a separate secrets file (AES-256-CBC, prompted master password)
+- `plock` to clear the cached master password from the current shell session
+- `psecret-migrate` to upgrade a v1 plain-text secrets file to the v2 encrypted format
 - `pedit` / `pedit <name>` to edit the whole store or one command’s text (default editor: **vim**)
 - `pcli` to drop into a sub-shell where saved command names work directly (no `p` prefix needed; type `bye` to exit)
 - `phelp` for a formatted reference in the terminal
@@ -79,6 +83,8 @@ pimport [-r|--replace] <file>
 psecret [-g|--global] <secret-key>
 psecret <command-name> <secret-key>
 pedit [name]
+plock
+psecret-migrate
 pupdate
 pcli
 phelp
@@ -191,7 +197,11 @@ Secrets live in a **separate** file (default):
 ${POPULAR_COMMANDS_FILE}.secrets
 ```
 
-Rows are tab-separated; the file is chmod `600` when created. Values are **not** strongly encrypted—protection is mainly filesystem permissions and host security. **`pexport` only writes the command store**, never the secrets file—safe to share exports that use `<<placeholders>>`.
+Rows are tab-separated; the file is chmod `600` when created. Values are **encrypted at rest with AES-256-CBC** (openssl, PBKDF2) under a master password you set on first use. The master password is cached for the current shell session and never written to disk; run `plock` to clear it. `openssl` must be available on your `PATH`.
+
+If you have an older v1 secrets file (plain-text values), run `psecret-migrate` once to re-encrypt everything under your master password. A `.bak` copy is kept until you remove it.
+
+**`pexport` only writes the command store**, never the secrets file—safe to share exports that use `<<placeholders>>`.
 
 You can override paths with:
 
@@ -292,7 +302,7 @@ Bug reports, docs fixes, and pull requests are appreciated. Start with [`CONTRIB
 
 ## Security
 
-Short version: saved shortcuts are executed with **`eval`** after template expansion—treat your commands file and **`pimport`** sources like code you trust. Secrets are permission-protected, not encrypted at rest. Details and reporting steps are in [`SECURITY.md`](SECURITY.md).
+Short version: saved shortcuts are executed with **`eval`** after template expansion — treat your commands file and **`pimport`** sources like code you trust. Secrets are encrypted at rest with AES-256-CBC under a session-cached master password; protection still depends on your `openssl` build and filesystem permissions. Details and reporting steps are in [`SECURITY.md`](SECURITY.md).
 
 ## Project files
 

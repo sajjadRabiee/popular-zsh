@@ -4,564 +4,401 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>popular.zsh — bookmark, template, and run zsh commands</title>
-  <meta name="description" content="Tiny zsh shortcuts for saving, running, and templating your most-used commands — with optional secret placeholders kept out of exported files.">
+  <meta name="description" content="Tiny zsh shortcuts for saving, running, and templating your most-used commands — with AES-256-CBC encrypted secrets and optional secret placeholders.">
   <meta property="og:title" content="popular.zsh">
-  <meta property="og:description" content="Bookmark, template, and run zsh commands. With pcli sub-shell, secret placeholders, and tab completion.">
+  <meta property="og:description" content="Bookmark, template, and run zsh commands. AES-256-CBC encrypted secrets, pcli sub-shell, and tab completion.">
   <meta property="og:type" content="website">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:       #0d0e1a;
-      --bg2:      #13141f;
-      --bg3:      #191a2d;
-      --bg4:      #1c1d30;
-      --border:   #2e3254;
-      --text:     #c0caf5;
-      --dim:      #565f89;
-      --dimmer:   #3b4261;
-      --blue:     #7aa2f7;
-      --purple:   #bb9af7;
-      --cyan:     #7dcfff;
-      --green:    #9ece6a;
-      --orange:   #e0af68;
-      --red:      #f7768e;
-      --grad: linear-gradient(90deg, #7aa2f7, #bb9af7, #7dcfff);
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
-      line-height: 1.6;
-      min-height: 100vh;
-    }
-
-    /* ── Layout ─────────────────────────────────────────────────── */
-    .container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
-
-    /* ── Nav ─────────────────────────────────────────────────────── */
-    nav {
-      border-bottom: 1px solid var(--border);
-      background: rgba(13,14,26,0.92);
-      backdrop-filter: blur(12px);
-      position: sticky; top: 0; z-index: 100;
-    }
-    nav .inner {
-      max-width: 900px; margin: 0 auto;
-      padding: 0.75rem 1.5rem;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .nav-brand {
-      font-family: ui-monospace, 'Cascadia Code', monospace;
-      font-size: 1rem; font-weight: 700;
-      background: var(--grad); -webkit-background-clip: text; background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-decoration: none;
-    }
-    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
-    .nav-links a {
-      color: var(--dim); text-decoration: none; font-size: 0.875rem;
-      transition: color 0.15s;
-    }
-    .nav-links a:hover { color: var(--text); }
-
-    /* ── Hero ────────────────────────────────────────────────────── */
-    .hero {
-      padding: 4rem 0 3rem;
-      text-align: center;
-    }
-    .hero-banner {
-      width: 100%; max-width: 760px;
-      border-radius: 12px;
-      margin-bottom: 2.5rem;
-    }
-    .hero h1 {
-      font-family: ui-monospace, 'Cascadia Code', monospace;
-      font-size: clamp(2rem, 5vw, 3rem);
-      font-weight: 800;
-      background: var(--grad); -webkit-background-clip: text; background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 1rem;
-    }
-    .hero p {
-      font-size: 1.125rem;
-      color: var(--dim);
-      max-width: 560px;
-      margin: 0 auto 2.5rem;
-    }
-
-    /* ── Install block ───────────────────────────────────────────── */
-    .install-wrap {
-      display: inline-flex;
-      align-items: center;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.75rem 1.25rem;
-      gap: 1rem;
-      max-width: 100%;
-    }
-    .install-wrap code {
-      font-family: ui-monospace, 'Cascadia Code', monospace;
-      font-size: 0.875rem;
-      color: var(--green);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .copy-btn {
-      flex-shrink: 0;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--dim);
-      cursor: pointer;
-      font-size: 0.75rem;
-      padding: 0.3rem 0.75rem;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .copy-btn:hover { color: var(--text); border-color: var(--blue); }
-    .copy-btn.copied { color: var(--green); border-color: var(--green); }
-
-    .hero-badges {
-      display: flex; flex-wrap: wrap; gap: 0.5rem;
-      justify-content: center;
-      margin-top: 1.75rem;
-    }
-    .badge {
-      font-family: ui-monospace, monospace;
-      font-size: 0.78rem; font-weight: 600;
-      padding: 0.28rem 0.7rem;
-      border-radius: 5px;
-      background: var(--bg4);
-      border: 1px solid var(--border);
-    }
-    .badge-green  { color: var(--green);  border-color: #2a3d1a; }
-    .badge-blue   { color: var(--blue);   border-color: #1a2a4a; }
-    .badge-orange { color: var(--orange); border-color: #3d3010; }
-    .badge-red    { color: var(--red);    border-color: #3d1a24; }
-    .badge-cyan   { color: var(--cyan);   border-color: #1a2f3a; }
-    .badge-purple { color: var(--purple); border-color: #2e1a4a; background: #1c1428; }
-
-    /* ── Section headings ─────────────────────────────────────────── */
-    section { padding: 3rem 0; border-top: 1px solid var(--border); }
-    section h2 {
-      font-family: ui-monospace, monospace;
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 1.5rem;
-    }
-    section h2 .hl {
-      background: var(--grad); -webkit-background-clip: text; background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    section h3 {
-      font-family: ui-monospace, monospace;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--dim);
-      margin-bottom: 0.6rem;
-      margin-top: 1.5rem;
-    }
-    section p { color: var(--dim); margin-bottom: 1rem; font-size: 0.95rem; }
-
-    /* ── Features grid ───────────────────────────────────────────── */
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1rem;
-    }
-    .feature-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.25rem 1.5rem;
-      transition: border-color 0.2s;
-    }
-    .feature-card:hover { border-color: var(--blue); }
-    .feature-card .cmd {
-      font-family: ui-monospace, monospace;
-      font-size: 1rem; font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-    .feature-card p { font-size: 0.85rem; margin: 0; }
-
-    /* ── Terminal code blocks ─────────────────────────────────────── */
-    .terminal {
-      background: #0b0c17;
-      border: 1px solid #191a2e;
-      border-radius: 10px;
-      overflow: hidden;
-      margin: 1rem 0;
-    }
-    .terminal-bar {
-      background: #121320;
-      padding: 0.5rem 1rem;
-      display: flex; align-items: center; gap: 0.5rem;
-    }
-    .dot { width: 12px; height: 12px; border-radius: 50%; }
-    .dot-r { background: #f7768e; }
-    .dot-y { background: #e0af68; }
-    .dot-g { background: #9ece6a; }
-    .terminal-bar span {
-      margin-left: auto;
-      font-family: ui-monospace, monospace;
-      font-size: 0.7rem;
-      color: #272a4a;
-    }
-    .terminal pre {
-      padding: 1.25rem 1.5rem;
-      font-family: ui-monospace, 'Cascadia Code', monospace;
-      font-size: 0.85rem;
-      line-height: 1.8;
-      overflow-x: auto;
-      white-space: pre;
-    }
-    .p  { color: var(--dimmer); } /* prompt $ */
-    .c  { color: var(--dim);    } /* comment */
-    .k  { color: var(--green);  } /* padd, paddh */
-    .kp { color: var(--blue);   } /* p */
-    .kl { color: var(--orange); } /* pls */
-    .ks { color: var(--red);    } /* psecret */
-    .ke { color: var(--cyan);   } /* pedit */
-    .kc { color: var(--purple); } /* pcli */
-    .ku { color: var(--green);  } /* pupdate */
-    .a  { color: var(--text);   } /* arg */
-    .q  { color: var(--dim);    } /* quoted string */
-    .o  { color: var(--orange); } /* output */
-    .ph { color: var(--purple); } /* placeholder */
-    .sk { color: var(--red);    } /* secret key */
-
-    /* ── Two-column layout ───────────────────────────────────────── */
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
-
-    /* ── Template table ──────────────────────────────────────────── */
-    .tbl-wrap { overflow-x: auto; }
-    table {
-      width: 100%; border-collapse: collapse;
-      font-size: 0.875rem;
-    }
-    th {
-      text-align: left; padding: 0.6rem 1rem;
-      font-family: ui-monospace, monospace;
-      font-size: 0.75rem; font-weight: 600;
-      color: var(--dim);
-      border-bottom: 1px solid var(--border);
-    }
-    td {
-      padding: 0.65rem 1rem;
-      border-bottom: 1px solid #191a2e;
-      vertical-align: top;
-    }
-    tr:last-child td { border-bottom: none; }
-    .mono { font-family: ui-monospace, monospace; }
-
-    /* ── pcli section ────────────────────────────────────────────── */
-    .pcli-aliases {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-    }
-    .alias-pair {
-      background: var(--bg4);
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      padding: 0.5rem 0.75rem;
-      display: flex; gap: 0.5rem; align-items: center;
-      font-family: ui-monospace, monospace;
-      font-size: 0.82rem;
-    }
-    .alias-pair .from { color: var(--purple); font-weight: 600; }
-    .alias-pair .arr  { color: var(--dimmer); }
-    .alias-pair .to   { color: var(--dim); }
-
-    /* ── Other shells ────────────────────────────────────────────── */
-    .shell-tabs {
-      display: flex; gap: 0.5rem; margin-bottom: 0;
-      flex-wrap: wrap;
-    }
-    .shell-tab {
-      background: var(--bg4);
-      border: 1px solid var(--border);
-      border-bottom: none;
-      border-radius: 7px 7px 0 0;
-      padding: 0.4rem 1rem;
-      font-family: ui-monospace, monospace;
-      font-size: 0.82rem;
-      cursor: pointer;
-      color: var(--dim);
-      transition: all 0.15s;
-    }
-    .shell-tab.active { color: var(--text); background: var(--bg2); border-color: var(--border); }
-    .shell-panel { display: none; }
-    .shell-panel.active { display: block; }
-    .shell-panel .terminal { border-radius: 0 10px 10px 10px; margin-top: 0; }
-
-    /* ── Storage section ─────────────────────────────────────────── */
-    .storage-paths {
-      display: flex; flex-direction: column; gap: 0.5rem;
-    }
-    .path-row {
-      display: flex; align-items: center; gap: 1rem;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-    }
-    .path-row .label {
-      font-size: 0.8rem; font-weight: 600;
-      color: var(--dim);
-      white-space: nowrap;
-    }
-    .path-row .val {
-      font-family: ui-monospace, monospace;
-      font-size: 0.85rem;
-      color: var(--cyan);
-    }
-
-    /* ── Footer ──────────────────────────────────────────────────── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 2.5rem 0;
-      text-align: center;
-    }
-    footer .links {
-      display: flex; flex-wrap: wrap; gap: 1.5rem;
-      justify-content: center; margin-bottom: 1rem;
-    }
-    footer a {
-      color: var(--dim); text-decoration: none; font-size: 0.875rem;
-      transition: color 0.15s;
-    }
-    footer a:hover { color: var(--blue); }
-    footer p { font-size: 0.8rem; color: var(--dimmer); }
-
-    /* ── Responsive ──────────────────────────────────────────────── */
-    @media (max-width: 600px) {
-      .install-wrap code { font-size: 0.72rem; }
-      .hero { padding: 2.5rem 0 2rem; }
-      section h2 { font-size: 1.1rem; }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- ── Nav ──────────────────────────────────────────────────────── -->
-<nav>
-  <div class="inner">
-    <a class="nav-brand" href="#">popular.zsh</a>
-    <ul class="nav-links">
-      <li><a href="#quickstart">Quick start</a></li>
-      <li><a href="#templates">Templates</a></li>
-      <li><a href="#pcli">pcli</a></li>
-      <li><a href="#other-shells">Other shells</a></li>
-      <li><a href="https://github.com/sajjadRabiee/popular-zsh" target="_blank" rel="noopener">GitHub ↗</a></li>
-    </ul>
-  </div>
-</nav>
+  <!-- ── Nav ───────────────────────────────────────────────────── -->
+  <nav>
+    <div class="inner">
+      <a class="nav-brand" href="#">popular.zsh</a>
+      <ul class="nav-links">
+        <li><a href="#quickstart">Quick start</a></li>
+        <li><a href="#templates">Templates</a></li>
+        <li><a href="#encryption">Encryption</a></li>
+        <li><a href="#pcli">pcli</a></li>
+        <li><a href="#other-shells">Other shells</a></li>
+        <li><a href="https://github.com/sajjadRabiee/popular-zsh" target="_blank" rel="noopener">GitHub ↗</a></li>
+      </ul>
+    </div>
+  </nav>
 
-<!-- ── Hero ─────────────────────────────────────────────────────── -->
-<header class="hero container">
-  <img
-    src="../assets/popular.svg"
-    alt="popular.zsh — bookmark, template, and run zsh commands"
-    class="hero-banner"
-  >
-  <p>Tiny zsh shortcuts for saving, running, and templating your most-used commands — with optional secret placeholders kept out of exported files.</p>
+  <!-- ── Hero ──────────────────────────────────────────────────── -->
+  <header class="hero container">
+    <img
+      src="../assets/popular.svg"
+      alt="popular.zsh — bookmark, template, and run zsh commands"
+      class="hero-banner"
+    >
+    <p>
+      Tiny zsh shortcuts for saving, running, and templating your most-used
+      commands — with AES-256-CBC encrypted secret placeholders kept out of
+      exported files.
+    </p>
 
-  <div class="install-wrap">
-    <code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/install.sh | zsh</code>
-    <button class="copy-btn" id="copy-install" onclick="copyInstall()">Copy</button>
-  </div>
+    <div class="install-wrap">
+      <code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/install.sh | zsh</code>
+      <button class="copy-btn" id="copy-install" onclick="copyInstall()">Copy</button>
+    </div>
 
-  <div class="hero-badges">
-    <span class="badge badge-green">padd</span>
-    <span class="badge badge-blue">p</span>
-    <span class="badge badge-orange">pls</span>
-    <span class="badge badge-red">psecret</span>
-    <span class="badge badge-cyan">pedit</span>
-    <span class="badge badge-green">pupdate</span>
-    <span class="badge badge-purple">pcli</span>
-  </div>
-</header>
+    <div class="hero-badges">
+      <span class="badge badge-green">padd</span>
+      <span class="badge badge-blue">p</span>
+      <span class="badge badge-orange">pls</span>
+      <span class="badge badge-red">psecret</span>
+      <span class="badge badge-cyan">pedit</span>
+      <span class="badge badge-green">pupdate</span>
+      <span class="badge badge-purple">pcli</span>
+      <span class="badge badge-red">plock</span>
+    </div>
+  </header>
 
-<!-- ── Features ─────────────────────────────────────────────────── -->
-<section id="features">
-  <div class="container">
-    <h2><span class="hl">What you get</span></h2>
-    <div class="features">
-      <div class="feature-card">
-        <div class="cmd" style="color:var(--green)">padd / paddh</div>
-        <p>Save commands by name, or grab a line straight from your shell history by event number.</p>
-      </div>
-      <div class="feature-card">
-        <div class="cmd" style="color:var(--blue)">p</div>
-        <p>Run a saved command. Templates expand <code class="mono" style="font-size:.8rem;color:var(--purple)">{{opt}}</code>, <code class="mono" style="font-size:.8rem;color:var(--cyan)">[[pos]]</code>, and <code class="mono" style="font-size:.8rem;color:var(--red)">&lt;&lt;secret&gt;&gt;</code> before exec.</p>
-      </div>
-      <div class="feature-card">
-        <div class="cmd" style="color:var(--orange)">pls</div>
-        <p>Browse saved commands with template hints and secret markers shown inline.</p>
-      </div>
-      <div class="feature-card">
-        <div class="cmd" style="color:var(--red)">psecret</div>
-        <p>Store sensitive values in a separate file (chmod 600). Never appears in <code class="mono" style="font-size:.8rem">pexport</code> output.</p>
-      </div>
-      <div class="feature-card">
-        <div class="cmd" style="color:var(--cyan)">pedit</div>
-        <p>Edit the full store or a single command in your preferred editor (<code class="mono" style="font-size:.8rem">$EDITOR</code> or vim).</p>
-      </div>
-      <div class="feature-card">
-        <div class="cmd" style="color:var(--purple)">pcli</div>
-        <p>Drop into a sub-shell where saved names work directly — no <code class="mono" style="font-size:.8rem">p</code> prefix. Tab completion included.</p>
-      </div>
-      <div class="feature-card">
-        <div class="cmd" style="color:var(--blue)">pexport / pimport</div>
-        <p>Back up, share, or merge command stores. Exports never include secrets — safe to commit.</p>
-      </div>
-      <div class="feature-card">
-        <div class="cmd" style="color:var(--green)">pupdate</div>
-        <p>Pull the latest <code class="mono" style="font-size:.8rem">popular.zsh</code> and all modules from GitHub in one command.</p>
+  <!-- ── Features ──────────────────────────────────────────────── -->
+  <section id="features">
+    <div class="container">
+      <h2><span class="hl">What you get</span></h2>
+      <div class="features">
+
+        <div class="feature-card">
+          <div class="cmd" style="color:var(--green)">padd / paddh</div>
+          <p>Save commands by name, or grab a line straight from your shell history by event number.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="cmd" style="color:var(--blue)">p</div>
+          <p>
+            Run a saved command. Templates expand
+            <code class="mono" style="font-size:.8rem;color:var(--purple)">{{opt}}</code>,
+            <code class="mono" style="font-size:.8rem;color:var(--cyan)">[[pos]]</code>, and
+            <code class="mono" style="font-size:.8rem;color:var(--red)">&lt;&lt;secret&gt;&gt;</code>
+            before exec.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="cmd" style="color:var(--orange)">pls</div>
+          <p>Browse saved commands with template hints and secret markers shown inline.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="cmd" style="color:var(--red)">psecret</div>
+          <p>
+            Store sensitive values encrypted with AES-256-CBC. A master password is
+            prompted once per session and cached in memory — never written to disk.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="cmd" style="color:var(--red)">plock</div>
+          <p>Clear the cached master password from the current shell session. The next secret access will re-prompt.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="cmd" style="color:var(--cyan)">pedit</div>
+          <p>Edit the full store or a single command in your preferred editor (<code class="mono" style="font-size:.8rem">$EDITOR</code> or vim).</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="cmd" style="color:var(--purple)">pcli</div>
+          <p>Drop into a sub-shell where saved names work directly — no <code class="mono" style="font-size:.8rem">p</code> prefix. Tab completion included.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="cmd" style="color:var(--blue)">pexport / pimport</div>
+          <p>Back up, share, or merge command stores. Exports never include secrets — safe to commit.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="cmd" style="color:var(--orange)">psecret-migrate</div>
+          <p>Upgrade a v1 plain-text secrets file to the v2 AES-256-CBC encrypted format in one command.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="cmd" style="color:var(--green)">pupdate</div>
+          <p>Pull the latest <code class="mono" style="font-size:.8rem">popular.zsh</code> and all modules from GitHub in one command.</p>
+        </div>
+
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── Quick start ───────────────────────────────────────────────── -->
-<section id="quickstart">
-  <div class="container">
-    <h2><span class="hl">Quick start</span></h2>
+  <!-- ── Quick start ────────────────────────────────────────────── -->
+  <section id="quickstart">
+    <div class="container">
+      <h2><span class="hl">Quick start</span></h2>
 
-    <h3>Save and run a command</h3>
-    <div class="terminal">
-      <div class="terminal-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span>zsh</span></div>
-      <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">gs git status</span>
+      <h3>Save and run a command</h3>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot dot-r"></span>
+          <span class="dot dot-y"></span>
+          <span class="dot dot-g"></span>
+          <span>zsh</span>
+        </div>
+        <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">gs git status</span>
 <span class="p">$</span> <span class="kp">p</span> <span class="a">gs</span>
 <span class="o">On branch main · nothing to commit</span>
 
 <span class="c"># Save from your history by event number</span>
 <span class="p">$</span> <span class="k">paddh</span> <span class="a">523 deploy-staging</span>
 <span class="p">$</span> <span class="kp">p</span> <span class="a">deploy-staging</span></pre>
-    </div>
+      </div>
 
-    <h3>Browse and manage</h3>
-    <div class="terminal">
-      <div class="terminal-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span>zsh</span></div>
-      <pre><span class="p">$</span> <span class="kl">pls</span>               <span class="c"># list everything</span>
+      <h3>Browse and manage</h3>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot dot-r"></span>
+          <span class="dot dot-y"></span>
+          <span class="dot dot-g"></span>
+          <span>zsh</span>
+        </div>
+        <pre><span class="p">$</span> <span class="kl">pls</span>               <span class="c"># list everything</span>
 <span class="p">$</span> <span class="kl">pls</span> <span class="a">git</span>           <span class="c"># filter by substring</span>
 <span class="p">$</span> <span class="ke">pedit</span> <span class="a">gs</span>         <span class="c"># edit just this command</span>
 <span class="p">$</span> <span class="a">premove gs</span>       <span class="c"># delete it</span></pre>
-    </div>
+      </div>
 
-    <h3>Export and import</h3>
-    <div class="terminal">
-      <div class="terminal-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span>zsh</span></div>
-      <pre><span class="p">$</span> <span class="k">pexport</span> <span class="a">~/my-commands.txt</span>   <span class="c"># safe to share — no secrets</span>
-<span class="p">$</span> <span class="k">pimport</span> <span class="a">~/my-commands.txt</span>   <span class="c"># merge into current store</span>
+      <h3>Export and import</h3>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot dot-r"></span>
+          <span class="dot dot-y"></span>
+          <span class="dot dot-g"></span>
+          <span>zsh</span>
+        </div>
+        <pre><span class="p">$</span> <span class="k">pexport</span> <span class="a">~/my-commands.txt</span>    <span class="c"># safe to share — no secrets</span>
+<span class="p">$</span> <span class="k">pimport</span> <span class="a">~/my-commands.txt</span>    <span class="c"># merge into current store</span>
 <span class="p">$</span> <span class="k">pimport</span> <span class="a">-r ~/my-commands.txt</span> <span class="c"># replace store entirely</span></pre>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── Templates ────────────────────────────────────────────────── -->
-<section id="templates">
-  <div class="container">
-    <h2><span class="hl">Templates</span></h2>
-    <p>Three placeholder styles let you turn saved commands into small, reusable generators.</p>
+  <!-- ── Templates ─────────────────────────────────────────────── -->
+  <section id="templates">
+    <div class="container">
+      <h2><span class="hl">Templates</span></h2>
+      <p>Three placeholder styles let you turn saved commands into small, reusable generators.</p>
 
-    <div class="tbl-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Syntax</th>
-            <th>Style</th>
-            <th>How to pass a value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="mono" style="color:var(--purple)">&#123;&#123;name&#125;&#125;</td>
-            <td>Named option</td>
-            <td><code class="mono" style="font-size:.85rem">p cmd --name=value</code></td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--cyan)">[[name]]</td>
-            <td>Positional</td>
-            <td><code class="mono" style="font-size:.85rem">p cmd value</code> (left-to-right order)</td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--purple)">&#123;&#123;name:default&#125;&#125;</td>
-            <td>Option with default</td>
-            <td>Omit the flag to use the stored default</td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--cyan)">[[name:default]]</td>
-            <td>Positional with default</td>
-            <td>Omit the arg to use the stored default</td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--red)">&lt;&lt;key&gt;&gt;</td>
-            <td>Secret</td>
-            <td>Set once with <code class="mono" style="font-size:.85rem">psecret -g key</code>, never stored in the command file</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Syntax</th>
+              <th>Style</th>
+              <th>How to pass a value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono" style="color:var(--purple)">&#123;&#123;name&#125;&#125;</td>
+              <td>Named option</td>
+              <td><code class="mono" style="font-size:.85rem">p cmd --name=value</code></td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--cyan)">[[name]]</td>
+              <td>Positional</td>
+              <td><code class="mono" style="font-size:.85rem">p cmd value</code> (left-to-right order)</td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--purple)">&#123;&#123;name:default&#125;&#125;</td>
+              <td>Option with default</td>
+              <td>Omit the flag to use the stored default</td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--cyan)">[[name:default]]</td>
+              <td>Positional with default</td>
+              <td>Omit the arg to use the stored default</td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--red)">&lt;&lt;key&gt;&gt;</td>
+              <td>Secret (encrypted)</td>
+              <td>Set once with <code class="mono" style="font-size:.85rem">psecret -g key</code>; encrypted at rest, never in exports</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-    <div class="two-col" style="margin-top:1.5rem">
-      <div>
-        <h3>Positional <span style="color:var(--cyan)">[[port]]</span></h3>
-        <div class="terminal">
-          <div class="terminal-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span>zsh</span></div>
-          <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">serve</span> <span class="q">'python3 -m http.server <span class="ph">[[port]]</span>'</span>
+      <div class="two-col" style="margin-top:1.5rem">
+
+        <div>
+          <h3>Positional <span style="color:var(--cyan)">[[port]]</span></h3>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span>zsh</span>
+            </div>
+            <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">serve</span> <span class="q">'python3 -m http.server <span class="ph">[[port]]</span>'</span>
 <span class="p">$</span> <span class="kp">p</span> <span class="a">serve 8000</span></pre>
+          </div>
         </div>
-      </div>
-      <div>
-        <h3>Named option <span style="color:var(--purple)">&#123;&#123;port&#125;&#125;</span></h3>
-        <div class="terminal">
-          <div class="terminal-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span>zsh</span></div>
-          <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">serve2</span> <span class="q">'python3 -m http.server <span class="ph">{{port}}</span>'</span>
+
+        <div>
+          <h3>Named option <span style="color:var(--purple)">&#123;&#123;port&#125;&#125;</span></h3>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span>zsh</span>
+            </div>
+            <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">serve2</span> <span class="q">'python3 -m http.server <span class="ph">{{port}}</span>'</span>
 <span class="p">$</span> <span class="kp">p</span> <span class="a">serve2 --port=8000</span></pre>
+          </div>
         </div>
-      </div>
-      <div>
-        <h3>Mixed positional + option</h3>
-        <div class="terminal">
-          <div class="terminal-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span>zsh</span></div>
-          <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">hit</span> <span class="q">'curl -s http://<span class="ph">[[host]]</span>:<span class="ph">{{port}}</span>/'</span>
+
+        <div>
+          <h3>Mixed positional + option</h3>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span>zsh</span>
+            </div>
+            <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">hit</span> <span class="q">'curl -s http://<span class="ph">[[host]]</span>:<span class="ph">{{port}}</span>/'</span>
 <span class="p">$</span> <span class="kp">p</span> <span class="a">hit localhost --port=8080</span></pre>
+          </div>
         </div>
-      </div>
-      <div>
-        <h3>Secret <span style="color:var(--red)">&lt;&lt;token&gt;&gt;</span></h3>
-        <div class="terminal">
-          <div class="terminal-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span>zsh</span></div>
-          <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">hook</span> <span class="q">'curl -H "Auth: Bearer <span class="sk">&lt;&lt;token&gt;&gt;</span>" $URL'</span>
+
+        <div>
+          <h3>Secret <span style="color:var(--red)">&lt;&lt;token&gt;&gt;</span></h3>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span>zsh</span>
+            </div>
+            <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">hook</span> <span class="q">'curl -H "Auth: Bearer <span class="sk">&lt;&lt;token&gt;&gt;</span>" $URL'</span>
 <span class="p">$</span> <span class="ks">psecret</span> <span class="a">-g token</span>
+<span class="o">master password: ••••••••</span>
 <span class="o">Enter value for token: ••••••••</span>
 <span class="p">$</span> <span class="kp">p</span> <span class="a">hook</span>    <span class="c"># token injected at runtime</span></pre>
+          </div>
         </div>
+
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── pcli ──────────────────────────────────────────────────────── -->
-<section id="pcli">
-  <div class="container">
-    <h2><span class="hl">pcli</span> — interactive popular shell</h2>
-    <p>Drop into a sub-shell where every saved name works as a first-class command. A <code class="mono" style="font-size:.85rem;color:var(--purple)">[p]</code> badge appears on the right side of your prompt so you always know you're inside the session. Tab completion is fully available. Type <code class="mono" style="font-size:.85rem">bye</code> to return to your normal shell.</p>
+  <!-- ── Encryption ─────────────────────────────────────────────── -->
+  <section id="encryption">
+    <div class="container">
+      <h2><span class="hl">Encryption</span></h2>
 
-    <div class="terminal">
-      <div class="terminal-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span>zsh</span></div>
-      <pre><span class="p">$</span> <span class="kc">pcli</span>
+      <div class="enc-callout">
+        <p>
+          Secret values are encrypted at rest with <strong>AES-256-CBC</strong> (openssl, PBKDF2).
+          A master password is prompted the first time you access secrets in a shell session and
+          cached in memory — it is never written to disk.
+        </p>
+        <p>
+          Requires <code class="mono" style="font-size:.85rem">openssl</code> on your
+          <code class="mono" style="font-size:.85rem">PATH</code>
+          (pre-installed on macOS; <code class="mono" style="font-size:.85rem">apt install openssl</code> on Linux).
+        </p>
+      </div>
+
+      <div class="enc-steps">
+
+        <div class="enc-step">
+          <div class="step-num">Step 1 — Store a secret</div>
+          <div class="step-title">First use: set your master password</div>
+          <p>On first <code class="mono" style="font-size:.82rem">psecret</code> call, you are prompted for a master password. All subsequent secrets in that session use it without prompting again.</p>
+        </div>
+
+        <div class="enc-step">
+          <div class="step-num">Step 2 — Run a command</div>
+          <div class="step-title">Secrets are decrypted at runtime</div>
+          <p>When you run <code class="mono" style="font-size:.82rem">p &lt;name&gt;</code>, each <code class="mono" style="font-size:.82rem">&lt;&lt;key&gt;&gt;</code> placeholder is decrypted on the fly and substituted before exec.</p>
+        </div>
+
+        <div class="enc-step">
+          <div class="step-num">Step 3 — Lock when done</div>
+          <div class="step-title">plock clears the cached key</div>
+          <p>Run <code class="mono" style="font-size:.82rem">plock</code> to wipe the master password from memory. The next secret access will prompt again.</p>
+        </div>
+
+        <div class="enc-step">
+          <div class="step-num">Migration — upgrading</div>
+          <div class="step-title">psecret-migrate: v1 → v2</div>
+          <p>Already have secrets? Run <code class="mono" style="font-size:.82rem">psecret-migrate</code> once to re-encrypt the file under AES-256-CBC. A <code class="mono" style="font-size:.82rem">.bak</code> is kept until you remove it.</p>
+        </div>
+
+      </div>
+
+      <h3>Secrets workflow</h3>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot dot-r"></span>
+          <span class="dot dot-y"></span>
+          <span class="dot dot-g"></span>
+          <span>zsh</span>
+        </div>
+        <pre><span class="c"># Save a command with a secret placeholder</span>
+<span class="p">$</span> <span class="k">padd</span> <span class="a">ci</span> <span class="q">'curl -u "<span class="sk">&lt;&lt;username&gt;&gt;</span>:<span class="sk">&lt;&lt;api-token&gt;&gt;</span>" https://ci.example.com/hook'</span>
+
+<span class="c"># Store secret values — master password is prompted once</span>
+<span class="p">$</span> <span class="ks">psecret</span> <span class="a">-g username</span>
+<span class="o">popular.zsh master password: ••••••••</span>
+<span class="o">Global secret 'username': robot</span>
+
+<span class="p">$</span> <span class="ks">psecret</span> <span class="a">-g api-token</span>
+<span class="o">Global secret 'api-token': ••••••••</span>
+
+<span class="c"># Run — secrets are decrypted and injected at runtime</span>
+<span class="p">$</span> <span class="kp">p</span> <span class="a">ci</span>
+
+<span class="c"># Lock the master password when stepping away</span>
+<span class="p">$</span> <span class="kk">plock</span>
+<span class="o">Secrets locked. Password will be prompted on next use.</span></pre>
+      </div>
+
+      <h3>Migrating from v1 (plain-text secrets)</h3>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot dot-r"></span>
+          <span class="dot dot-y"></span>
+          <span class="dot dot-g"></span>
+          <span>zsh</span>
+        </div>
+        <pre><span class="p">$</span> <span class="km">psecret-migrate</span>
+<span class="o">popular.zsh master password: ••••••••</span>
+<span class="o">Migrated 4 secret(s) to AES-256 encrypted format.</span>
+<span class="o">Unencrypted backup: ~/.popular_commands.secrets.bak</span>
+
+<span class="c"># Remove the backup once you have verified the migration</span>
+<span class="p">$</span> <span class="a">rm ~/.popular_commands.secrets.bak</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── pcli ──────────────────────────────────────────────────── -->
+  <section id="pcli">
+    <div class="container">
+      <h2><span class="hl">pcli</span> — interactive popular shell</h2>
+      <p>
+        Drop into a sub-shell where every saved name works as a first-class command.
+        A <code class="mono" style="font-size:.85rem;color:var(--purple)">[p]</code> badge
+        appears on the right side of your prompt so you always know you're inside the session.
+        Tab completion is fully available. Type <code class="mono" style="font-size:.85rem">bye</code>
+        to return to your normal shell.
+      </p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot dot-r"></span>
+          <span class="dot dot-y"></span>
+          <span class="dot dot-g"></span>
+          <span>zsh</span>
+        </div>
+        <pre><span class="p">$</span> <span class="kc">pcli</span>
 <span class="o">  popular shell — saved names work directly · bye to exit</span>
 
 <span class="p">sajjad@mac ~</span> <span class="kc">[p]</span>
@@ -572,59 +409,78 @@
 <span class="p">→</span> <span class="k">add</span> <span class="a">up 'docker compose up -d'</span>
 <span class="p">→</span> <span class="a">up</span>             <span class="c"># runs it immediately</span>
 <span class="p">→</span> <span class="a">bye</span></pre>
-    </div>
-
-    <div class="pcli-aliases">
-      <div class="alias-pair"><span class="from">add</span><span class="arr">→</span><span class="to">padd</span></div>
-      <div class="alias-pair"><span class="from">addh</span><span class="arr">→</span><span class="to">paddh</span></div>
-      <div class="alias-pair"><span class="from">list</span><span class="arr">→</span><span class="to">pls</span></div>
-      <div class="alias-pair"><span class="from">remove</span><span class="arr">→</span><span class="to">premove</span></div>
-      <div class="alias-pair"><span class="from">edit</span><span class="arr">→</span><span class="to">pedit</span></div>
-      <div class="alias-pair"><span class="from">update</span><span class="arr">→</span><span class="to">pupdate</span></div>
-      <div class="alias-pair"><span class="from">secret</span><span class="arr">→</span><span class="to">psecret</span></div>
-      <div class="alias-pair"><span class="from">save</span><span class="arr">→</span><span class="to">pexport</span></div>
-      <div class="alias-pair"><span class="from">load</span><span class="arr">→</span><span class="to">pimport</span></div>
-      <div class="alias-pair"><span class="from">help</span><span class="arr">→</span><span class="to">phelp</span></div>
-      <div class="alias-pair"><span class="from">bye</span><span class="arr">→</span><span class="to">exit</span></div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Storage ───────────────────────────────────────────────────── -->
-<section id="storage">
-  <div class="container">
-    <h2><span class="hl">Storage</span></h2>
-    <p>Commands and secrets live in two separate plain-text files. Both paths can be overridden with environment variables.</p>
-    <div class="storage-paths">
-      <div class="path-row">
-        <span class="label">Commands</span>
-        <span class="val">~/.popular_commands</span>
       </div>
-      <div class="path-row">
-        <span class="label">Secrets</span>
-        <span class="val">${POPULAR_COMMANDS_FILE}.secrets &nbsp;<span style="color:var(--dimmer);font-family:ui-sans-serif,sans-serif;font-size:.8rem">(chmod 600)</span></span>
+
+      <div class="pcli-aliases">
+        <div class="alias-pair"><span class="from">add</span><span class="arr">→</span><span class="to">padd</span></div>
+        <div class="alias-pair"><span class="from">addh</span><span class="arr">→</span><span class="to">paddh</span></div>
+        <div class="alias-pair"><span class="from">list</span><span class="arr">→</span><span class="to">pls</span></div>
+        <div class="alias-pair"><span class="from">remove</span><span class="arr">→</span><span class="to">premove</span></div>
+        <div class="alias-pair"><span class="from">edit</span><span class="arr">→</span><span class="to">pedit</span></div>
+        <div class="alias-pair"><span class="from">update</span><span class="arr">→</span><span class="to">pupdate</span></div>
+        <div class="alias-pair"><span class="from">secret</span><span class="arr">→</span><span class="to">psecret</span></div>
+        <div class="alias-pair"><span class="from">save</span><span class="arr">→</span><span class="to">pexport</span></div>
+        <div class="alias-pair"><span class="from">load</span><span class="arr">→</span><span class="to">pimport</span></div>
+        <div class="alias-pair"><span class="from">help</span><span class="arr">→</span><span class="to">phelp</span></div>
+        <div class="alias-pair"><span class="from">bye</span><span class="arr">→</span><span class="to">exit</span></div>
       </div>
     </div>
-    <p style="margin-top:1rem">Each command line is <code class="mono" style="font-size:.85rem">name|command</code>. <strong style="color:var(--text)">pexport</strong> only writes the commands file — never the secrets file — so exports are safe to share or commit to version control.</p>
-  </div>
-</section>
+  </section>
 
-<!-- ── Other shells ──────────────────────────────────────────────── -->
-<section id="other-shells">
-  <div class="container">
-    <h2><span class="hl">Other shells</span></h2>
-    <p>popular.zsh is written for zsh, but bash, fish, and nushell users can use it too — as long as zsh is installed. The installer injects thin wrapper functions automatically. All shells share the same backing file.</p>
-
-    <div class="shell-tabs">
-      <button class="shell-tab active" onclick="showShell('bash',this)">bash</button>
-      <button class="shell-tab" onclick="showShell('fish',this)">fish</button>
-      <button class="shell-tab" onclick="showShell('nu',this)">nushell</button>
+  <!-- ── Storage ───────────────────────────────────────────────── -->
+  <section id="storage">
+    <div class="container">
+      <h2><span class="hl">Storage</span></h2>
+      <p>
+        Commands and secrets live in two separate files. Both paths can be overridden
+        with environment variables.
+      </p>
+      <div class="storage-paths">
+        <div class="path-row">
+          <span class="label">Commands</span>
+          <span class="val">~/.popular_commands</span>
+        </div>
+        <div class="path-row">
+          <span class="label">Secrets</span>
+          <span class="val">
+            ${POPULAR_COMMANDS_FILE}.secrets
+            &nbsp;<span style="color:var(--dimmer);font-family:ui-sans-serif,sans-serif;font-size:.8rem">(chmod 600 · AES-256-CBC encrypted)</span>
+          </span>
+        </div>
+      </div>
+      <p style="margin-top:1rem">
+        Each command line is <code class="mono" style="font-size:.85rem">name|command</code>.
+        <strong style="color:var(--text)">pexport</strong> only writes the commands file —
+        never the secrets file — so exports are safe to share or commit to version control.
+      </p>
     </div>
+  </section>
 
-    <div id="shell-bash" class="shell-panel active">
-      <div class="terminal">
-        <div class="terminal-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span>~/.bashrc</span></div>
-        <pre><span class="c"># Add to ~/.bashrc</span>
+  <!-- ── Other shells ──────────────────────────────────────────── -->
+  <section id="other-shells">
+    <div class="container">
+      <h2><span class="hl">Other shells</span></h2>
+      <p>
+        popular.zsh is written for zsh, but bash, fish, and nushell users can use it too —
+        as long as zsh is installed. The installer injects thin wrapper functions automatically.
+        All shells share the same backing file.
+      </p>
+
+      <div class="shell-tabs">
+        <button class="shell-tab active" onclick="showShell('bash', this)">bash</button>
+        <button class="shell-tab" onclick="showShell('fish', this)">fish</button>
+        <button class="shell-tab" onclick="showShell('nu', this)">nushell</button>
+      </div>
+
+      <div id="shell-bash" class="shell-panel active">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <span class="dot dot-r"></span>
+            <span class="dot dot-y"></span>
+            <span class="dot dot-g"></span>
+            <span>~/.bashrc</span>
+          </div>
+          <pre><span class="c"># Add to ~/.bashrc</span>
 <span class="k">_p_zsh</span><span class="a">() { zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && \"\$@\"" -- "$@"; }</span>
 <span class="kp">p</span><span class="a">()       { _p_zsh p       "$@"; }</span>
 <span class="k">padd</span><span class="a">()    { _p_zsh padd    "$@"; }</span>
@@ -632,15 +488,21 @@
 <span class="a">premove() { _p_zsh premove "$@"; }</span>
 <span class="ke">pedit</span><span class="a">()   { _p_zsh pedit   "$@"; }</span>
 <span class="ks">psecret</span><span class="a">() { _p_zsh psecret "$@"; }</span>
+<span class="kk">plock</span><span class="a">()   { _p_zsh plock          ; }</span>
 <span class="ku">pupdate</span><span class="a">() { _p_zsh pupdate        ; }</span>
 <span class="kc">pcli</span><span class="a">()    { zsh -i -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && pcli"; }</span></pre>
+        </div>
       </div>
-    </div>
 
-    <div id="shell-fish" class="shell-panel">
-      <div class="terminal">
-        <div class="terminal-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span>~/.config/fish/config.fish</span></div>
-        <pre><span class="c"># Add to config.fish</span>
+      <div id="shell-fish" class="shell-panel">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <span class="dot dot-r"></span>
+            <span class="dot dot-y"></span>
+            <span class="dot dot-g"></span>
+            <span>~/.config/fish/config.fish</span>
+          </div>
+          <pre><span class="c"># Add to config.fish</span>
 <span class="k">function</span> <span class="a">_p_zsh</span>
     <span class="a">set cmd $argv[1]; set -e argv[1]</span>
     <span class="a">zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && $cmd \"\$@\"" -- $argv</span>
@@ -649,55 +511,45 @@
 <span class="k">function</span> <span class="k">padd</span><span class="a">;    _p_zsh padd    $argv; end</span>
 <span class="k">function</span> <span class="kl">pls</span><span class="a">;     _p_zsh pls     $argv; end</span>
 <span class="k">function</span> <span class="ks">psecret</span><span class="a">; _p_zsh psecret $argv; end</span>
+<span class="k">function</span> <span class="kk">plock</span><span class="a">;   _p_zsh plock;         end</span>
 <span class="k">function</span> <span class="ku">pupdate</span><span class="a">; zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && pupdate"; end</span>
 <span class="k">function</span> <span class="kc">pcli</span><span class="a">;    zsh -i -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && pcli"; end</span></pre>
+        </div>
       </div>
-    </div>
 
-    <div id="shell-nu" class="shell-panel">
-      <div class="terminal">
-        <div class="terminal-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span>~/.config/nushell/config.nu</span></div>
-        <pre><span class="c"># Add to config.nu</span>
+      <div id="shell-nu" class="shell-panel">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <span class="dot dot-r"></span>
+            <span class="dot dot-y"></span>
+            <span class="dot dot-g"></span>
+            <span>~/.config/nushell/config.nu</span>
+          </div>
+          <pre><span class="c"># Add to config.nu</span>
 <span class="k">def</span> <span class="kp">p</span> <span class="a">[...rest] { zsh -c $"source ~/.popular-zsh/popular.zsh && p ($rest | str join ' ')" }</span>
 <span class="k">def</span> <span class="k">padd</span> <span class="a">[...rest] { zsh -c $"source ~/.popular-zsh/popular.zsh && padd ($rest | str join ' ')" }</span>
 <span class="k">def</span> <span class="kl">pls</span> <span class="a">[...rest] { zsh -c $"source ~/.popular-zsh/popular.zsh && pls ($rest | str join ' ')" }</span>
 <span class="k">def</span> <span class="kc">pcli</span> <span class="a">[] { zsh -i -c "source ~/.popular-zsh/popular.zsh && pcli" }</span></pre>
+        </div>
       </div>
+
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── Footer ────────────────────────────────────────────────────── -->
-<footer>
-  <div class="container">
-    <div class="links">
-      <a href="https://github.com/sajjadRabiee/popular-zsh" target="_blank" rel="noopener">GitHub</a>
-      <a href="https://github.com/sajjadRabiee/popular-zsh/blob/main/README.md" target="_blank" rel="noopener">README</a>
-      <a href="https://github.com/sajjadRabiee/popular-zsh/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Contributing</a>
-      <a href="https://github.com/sajjadRabiee/popular-zsh/blob/main/SECURITY.md" target="_blank" rel="noopener">Security</a>
-      <a href="https://github.com/sajjadRabiee/popular-zsh/issues" target="_blank" rel="noopener">Issues</a>
+  <!-- ── Footer ────────────────────────────────────────────────── -->
+  <footer>
+    <div class="container">
+      <div class="links">
+        <a href="https://github.com/sajjadRabiee/popular-zsh" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/sajjadRabiee/popular-zsh/blob/main/README.md" target="_blank" rel="noopener">README</a>
+        <a href="https://github.com/sajjadRabiee/popular-zsh/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Contributing</a>
+        <a href="https://github.com/sajjadRabiee/popular-zsh/blob/main/SECURITY.md" target="_blank" rel="noopener">Security</a>
+        <a href="https://github.com/sajjadRabiee/popular-zsh/issues" target="_blank" rel="noopener">Issues</a>
+      </div>
+      <p>popular.zsh &mdash; intentionally simple command bookmarks for zsh</p>
     </div>
-    <p>popular.zsh &mdash; intentionally simple command bookmarks for zsh</p>
-  </div>
-</footer>
+  </footer>
 
-<script>
-  function copyInstall() {
-    const text = document.getElementById('install-cmd').textContent;
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = document.getElementById('copy-install');
-      btn.textContent = 'Copied!';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-    });
-  }
-
-  function showShell(id, el) {
-    document.querySelectorAll('.shell-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.shell-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('shell-' + id).classList.add('active');
-    el.classList.add('active');
-  }
-</script>
+  <script src="app.js"></script>
 </body>
 </html>

@@ -12,7 +12,9 @@ Welcome to the wiki for `popular.zsh`.
 - `pls` to browse saved commands (with template and secret hints)
 - `premove` to remove entries (and per-command secret rows)
 - `pexport` and `pimport` to export or merge saved commands (`pexport` never exports secrets)
-- `psecret` / `psecret --global` to fill secret placeholders
+- `psecret` / `psecret --global` to fill secret placeholders — values are encrypted at rest with AES-256-CBC
+- `plock` to clear the cached master password from the current shell session
+- `psecret-migrate` to upgrade a v1 plain-text secrets file to the v2 encrypted format
 - `pedit` / `pedit <name>` to edit the whole file or one command (default editor: vim)
 - `pcli` to drop into a sub-shell where saved command names work directly (no `p` prefix; `bye` to exit)
 - `phelp` for formatted help in the terminal
