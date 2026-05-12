@@ -20,6 +20,7 @@ typeset -a POPULAR_MODULE_PATHS=(
   lib/popular/cmd-io.zsh
   lib/popular/cmd-edit.zsh
   lib/popular/cmd-update.zsh
+  lib/popular/cmd-cli.zsh
   lib/popular/completion.zsh
 )
 

@@ -14,6 +14,7 @@ typeset -ga _popular_upstream_paths=(
   lib/popular/cmd-io.zsh
   lib/popular/cmd-edit.zsh
   lib/popular/cmd-update.zsh
+  lib/popular/cmd-cli.zsh
   lib/popular/completion.zsh
 )
 
@@ -49,5 +50,12 @@ pupdate() {
   done
 
   _popular_info "Updated from $base"
-  _popular_note "Reload with: source \"$root/popular.zsh\""
+
+  # Re-source popular.zsh so every updated function is live immediately —
+  # no manual reload needed.
+  if source "$root/popular.zsh" 2>/dev/null; then
+    _popular_note "All commands reloaded."
+  else
+    _popular_warn "pupdate: auto-reload failed — run: source \"$root/popular.zsh\""
+  fi
 }
