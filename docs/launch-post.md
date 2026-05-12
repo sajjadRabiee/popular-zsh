@@ -18,6 +18,7 @@ That became a tiny workflow:
 - `pexport` / `pimport` to move or merge saved commands as plain text (exports never include secrets)
 - `psecret` / `psecret -g` to store sensitive values beside the command file
 - `pedit` to edit them directly
+- `pcli` to drop into a sub-shell where saved names work without the `p` prefix
 - `phelp` for a readable command reference in the terminal
 
 Then it grew a little in the right direction:

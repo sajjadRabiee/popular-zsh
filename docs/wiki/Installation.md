@@ -19,6 +19,7 @@ This downloads the bootstrap script and all modules into:
 ~/.popular-zsh/lib/popular/cmd-list.zsh
 ~/.popular-zsh/lib/popular/cmd-io.zsh
 ~/.popular-zsh/lib/popular/cmd-edit.zsh
+~/.popular-zsh/lib/popular/cmd-cli.zsh
 ~/.popular-zsh/lib/popular/completion.zsh
 ```
 

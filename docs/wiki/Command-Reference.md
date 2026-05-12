@@ -115,6 +115,34 @@ Uses **`POPULAR_REPO_BASE`** if set (default: `https://raw.githubusercontent.com
 source ~/.popular-zsh/popular.zsh
 ```
 
+## `pcli`
+
+Drop into a sub-shell where your saved command names work **directly**—no `p` prefix needed. Your normal `PS1` is untouched; a `[p]` badge appears on the right so you always know you're inside the popular session. The following short aliases are active inside `pcli`:
+
+| Alias    | Full command |
+|----------|-------------|
+| `add`    | `padd`      |
+| `addh`   | `paddh`     |
+| `list`   | `pls`       |
+| `remove` | `premove`   |
+| `edit`   | `pedit`     |
+| `update` | `pupdate`   |
+| `secret` | `psecret`   |
+| `save`   | `pexport`   |
+| `load`   | `pimport`   |
+| `help`   | `phelp`     |
+| `bye`    | `exit`      |
+
+Tab completion is fully available inside the sub-shell.
+
+```zsh
+pcli
+# now inside popular shell:
+gs          # runs your saved "gs" command directly
+list        # same as pls
+bye         # exits back to your normal shell
+```
+
 ## `phelp`
 
 Show the built-in help (boxed layout, command table, and examples):

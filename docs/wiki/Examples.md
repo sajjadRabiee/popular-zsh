@@ -81,3 +81,19 @@ pimport -r ~/Desktop/popular-commands.backup
 ```
 
 After import, if the file contains `<<secrets>>`, the shell may ask **global vs per-command** secret setup (TTY only), then guide you through `psecret`.
+
+## Interactive popular shell (`pcli`)
+
+Drop into a sub-shell where every saved command name works directly—no `p` prefix required. Your `PS1` stays intact; a `[p]` badge appears on the right so you always know you're inside the popular session.
+
+```zsh
+pcli
+# — inside popular shell —
+gs               # runs your saved "gs" directly
+list             # alias for pls
+add deploy 'kubectl rollout restart deploy/api'
+deploy           # runs it straight away
+bye              # exit back to normal shell
+```
+
+Useful when you want to run several bookmarks in a row without typing `p` each time, or when onboarding someone who should not need to learn the `p` prefix.

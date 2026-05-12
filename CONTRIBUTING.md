@@ -51,6 +51,7 @@ There is no automated test harness yet. Before submitting a change, please smoke
 - Import / export: `pexport`, `pimport`, `pimport -r` with a small fixture file.
 - Secrets: `psecret`, `psecret -g`, then `p` on a command that uses `<<key>>`.
 - Completion: trigger tab completion for `p`, `pls`, `psecret`, etc., if you touch [`lib/popular/completion.zsh`](lib/popular/completion.zsh).
+- Sub-shell: run `pcli`, execute a saved command by name, use the short aliases (`list`, `add`, `bye`), and verify tab completion works inside the session.
 
 Use a **scratch** `POPULAR_COMMANDS_FILE` (and matching secrets path) while testing so you do not overwrite your real shortcuts:
 

@@ -14,6 +14,7 @@ Welcome to the wiki for `popular.zsh`.
 - `pexport` and `pimport` to export or merge saved commands (`pexport` never exports secrets)
 - `psecret` / `psecret --global` to fill secret placeholders
 - `pedit` / `pedit <name>` to edit the whole file or one command (default editor: vim)
+- `pcli` to drop into a sub-shell where saved command names work directly (no `p` prefix; `bye` to exit)
 - `phelp` for formatted help in the terminal
 - tab completion for saved names (`p`, `premove`, `pedit`, `pls` filters)
 - tab completion for template options like `--port=` or `--class=`

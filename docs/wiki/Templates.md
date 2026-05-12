@@ -51,3 +51,5 @@ p open-model --class='my.app.models.User' --env=dev
 After `p <name>`, completion offers **`--name=`** or a full **`--name=default`** when the template uses **`{{name:default}}`**. Plain **`{{name}}`** still completes to **`--name=`**. `[[name]]` slots are filled from positional arguments, so they do not get `--` suggestions.
 
 Other completion hooks include saved names for `p` / `premove` / `pls` (filter words), file paths for `pexport` and `pimport`, `psecret` targets and keys, and related helpers. Run `phelp` for the full command list.
+
+Inside `pcli`, all completion works the same way. Saved names also complete as first-word commands (no `p` prefix), so `gs<TAB>` suggests your `gs` bookmark alongside regular executables.

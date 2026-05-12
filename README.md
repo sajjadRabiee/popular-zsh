@@ -21,6 +21,7 @@ It gives you:
 - `pexport` / `pimport` to back up, share, or merge your saved commands (`pexport` never includes secrets)
 - `psecret` / `psecret -g` to store sensitive values in a separate secrets file
 - `pedit` / `pedit <name>` to edit the whole store or one command’s text (default editor: **vim**)
+- `pcli` to drop into a sub-shell where saved command names work directly (no `p` prefix needed; type `bye` to exit)
 - `phelp` for a formatted reference in the terminal
 - tab completion for saved names (`p`, `premove`, `pedit`, `pls` filters)
 - tab completion for template options like `--class=`
@@ -61,6 +62,8 @@ This mirrors the repo under `~/.popular-zsh/` (including `lib/popular/*.zsh`). O
 
 After install, upgrade in place with **`pupdate`** (same `POPULAR_REPO_BASE`), then run **`source ~/.popular-zsh/popular.zsh`** (or your path).
 
+Once installed, you can also drop into a fully-featured sub-shell with `pcli`—saved commands become first-class commands there.
+
 ## Commands
 
 ```zsh
@@ -75,6 +78,7 @@ psecret [-g|--global] <secret-key>
 psecret <command-name> <secret-key>
 pedit [name]
 pupdate
+pcli
 phelp
 ```
 
