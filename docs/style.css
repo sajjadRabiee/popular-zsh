@@ -20,6 +20,36 @@
   --orange:   #e0af68;
   --red:      #f7768e;
   --grad: linear-gradient(90deg, #7aa2f7, #bb9af7, #7dcfff);
+
+  /* terminal block colours (dark) */
+  --term-bg:      #0b0c17;
+  --term-border:  #191a2e;
+  --term-bar:     #121320;
+  --term-bar-lbl: #272a4a;
+}
+
+html[data-theme="light"] {
+  --bg:       #f4f4fa;
+  --bg2:      #ffffff;
+  --bg3:      #eaeaf5;
+  --bg4:      #e2e2f0;
+  --border:   #c8c8e4;
+  --text:     #1a1b2e;
+  --dim:      #4a4f72;
+  --dimmer:   #9494b8;
+  --blue:     #2851a3;
+  --purple:   #6b28c8;
+  --cyan:     #0a6080;
+  --green:    #387010;
+  --orange:   #7a4800;
+  --red:      #b01838;
+  --grad: linear-gradient(90deg, #2851a3, #6b28c8, #0a6080);
+
+  /* terminal block colours (light) */
+  --term-bg:      #f0f0fb;
+  --term-border:  #d0d0ec;
+  --term-bar:     #e4e4f4;
+  --term-bar-lbl: #9494b8;
 }
 
 html {
@@ -264,15 +294,15 @@ section p {
 /* ── Terminal blocks ─────────────────────────────────────────────── */
 
 .terminal {
-  background: #0b0c17;
-  border: 1px solid #191a2e;
+  background: var(--term-bg);
+  border: 1px solid var(--term-border);
   border-radius: 10px;
   overflow: hidden;
   margin: 1rem 0;
 }
 
 .terminal-bar {
-  background: #121320;
+  background: var(--term-bar);
   padding: 0.5rem 1rem;
   display: flex;
   align-items: center;
@@ -293,7 +323,7 @@ section p {
   margin-left: auto;
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
-  color: #272a4a;
+  color: var(--term-bar-lbl);
 }
 
 .terminal pre {
@@ -556,6 +586,45 @@ footer p {
   font-size: 0.8rem;
   color: var(--dimmer);
 }
+
+/* ── Theme toggle button ─────────────────────────────────────────── */
+
+.theme-toggle {
+  background: var(--bg4);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 0.3rem 0.65rem;
+  transition: color 0.15s, border-color 0.15s;
+  line-height: 1;
+  user-select: none;
+}
+
+.theme-toggle:hover {
+  color: var(--text);
+  border-color: var(--blue);
+}
+
+/* ── Light-mode syntax token overrides ──────────────────────────── */
+
+html[data-theme="light"] .p  { color: #8888aa; }
+html[data-theme="light"] .c  { color: #7070a0; }
+html[data-theme="light"] .k  { color: #387010; }
+html[data-theme="light"] .kp { color: #2851a3; }
+html[data-theme="light"] .kl { color: #7a4800; }
+html[data-theme="light"] .ks { color: #a01030; }
+html[data-theme="light"] .ke { color: #0a6080; }
+html[data-theme="light"] .kc { color: #6028b8; }
+html[data-theme="light"] .ku { color: #387010; }
+html[data-theme="light"] .kk { color: #a01030; }
+html[data-theme="light"] .km { color: #7a4800; }
+html[data-theme="light"] .a  { color: #1a1b2e; }
+html[data-theme="light"] .q  { color: #4a4f72; }
+html[data-theme="light"] .o  { color: #7a4800; }
+html[data-theme="light"] .ph { color: #6028b8; }
+html[data-theme="light"] .sk { color: #a01030; }
 
 /* ── Responsive ──────────────────────────────────────────────────── */
 

@@ -1,3 +1,24 @@
+/* ── Theme ───────────────────────────────────────────────────────── */
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('theme-toggle').textContent = theme === 'light' ? '☾' : '☀︎';
+  localStorage.setItem('popular-theme', theme);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  applyTheme(current === 'light' ? 'dark' : 'light');
+}
+
+(function () {
+  const saved = localStorage.getItem('popular-theme');
+  const preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  applyTheme(saved || preferred);
+})();
+
+/* ── Install copy ────────────────────────────────────────────────── */
+
 function copyInstall() {
   const text = document.getElementById('install-cmd').textContent;
   navigator.clipboard.writeText(text).then(() => {
@@ -10,6 +31,8 @@ function copyInstall() {
     }, 2000);
   });
 }
+
+/* ── Shell tabs ──────────────────────────────────────────────────── */
 
 function showShell(id, el) {
   document.querySelectorAll('.shell-panel').forEach(p => p.classList.remove('active'));
