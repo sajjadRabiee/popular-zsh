@@ -58,6 +58,8 @@ curl -fsSL https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/insta
 
 This mirrors the repo under `~/.popular-zsh/` (including `lib/popular/*.zsh`). Override the GitHub root with `POPULAR_REPO_BASE` if needed.
 
+The installer detects your shell via `$SHELL` and injects the right integration automatically — a `source` line for **zsh** (`~/.zshrc`), wrapper functions for **bash** (`~/.bashrc`) or **fish** (`~/.config/fish/config.fish`), or `def` wrappers for **nushell** (`~/.config/nushell/config.nu`). Override detection with `POPULAR_SHELL=bash` (or `fish`, `nu`) before the curl command.
+
 **Trust:** piping remote scripts into your shell runs whatever the URL returns. To reduce risk, clone the repo (or save `install.sh`, inspect it, then run it with `zsh install.sh`). Only point `POPULAR_REPO_BASE` at origins you trust—`pupdate` downloads from the same base.
 
 After install, upgrade in place with **`pupdate`** (same `POPULAR_REPO_BASE`), then run **`source ~/.popular-zsh/popular.zsh`** (or your path).
@@ -249,7 +251,7 @@ function pcli;    zsh -i -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && pc
 
 ### Any shell — interactive session with `pcli`
 
-If `popular.zsh` is sourced in your `~/.zshrc` (the install script does this automatically), you can drop into a fully-featured popular session from **any** shell simply by starting an interactive zsh:
+If `popular.zsh` is sourced in your `~/.zshrc` (the install script does this automatically for zsh; bash, fish, and nushell users get wrapper functions instead), you can drop into a fully-featured popular session from **any** shell simply by starting an interactive zsh:
 
 ```sh
 zsh          # your .zshrc is loaded, popular.zsh included

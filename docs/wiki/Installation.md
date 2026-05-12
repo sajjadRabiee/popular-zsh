@@ -23,11 +23,7 @@ This downloads the bootstrap script and all modules into:
 ~/.popular-zsh/lib/popular/completion.zsh
 ```
 
-And adds this to your `~/.zshrc` if needed:
-
-```zsh
-source ~/.popular-zsh/popular.zsh
-```
+And injects the right integration for your shell: a `source` line into `~/.zshrc` for **zsh**, wrapper functions into `~/.bashrc` for **bash**, into `~/.config/fish/config.fish` for **fish**, or `def` wrappers into `~/.config/nushell/config.nu` for **nushell**.
 
 Override the GitHub raw root (branch layout) with:
 

@@ -2,6 +2,8 @@
 
 `popular.zsh` is a zsh-native tool, but its store is a plain text file and every command is run through a `zsh` process—so users of **bash**, **fish**, **nushell**, and other shells can use it as long as `zsh` is installed.
 
+> **Auto-configured by the installer:** The one-line curl installer detects your shell via `$SHELL` and writes the right snippet below automatically. If you already ran it, your config is set up — just reload your shell. The sections here are for manual installation or customisation. Override detection with `POPULAR_SHELL=bash` (or `fish`, `nu`) before the curl command.
+
 ## Prerequisite: install zsh
 
 | Platform | Command |
@@ -94,27 +96,18 @@ Add definitions to your `config.nu` (`$nu.config-path`):
 
 ```nu
 # popular.zsh wrappers for nushell
-def p [...rest: string] {
-    zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && p ($rest | str join ' ')"
-}
-def padd [...rest: string] {
-    zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && padd ($rest | str join ' ')"
-}
-def pls [...rest: string] {
-    zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && pls ($rest | str join ' ')"
-}
-def premove [name: string] {
-    zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && premove ($name)"
-}
-def pexport [...rest: string] {
-    zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && pexport ($rest | str join ' ')"
-}
-def phelp [] {
-    zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && phelp"
-}
-def pcli [] {
-    zsh -i -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && pcli"
-}
+def p [...rest: string] { zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && p ($rest | str join ' ')" }
+def padd [...rest: string] { zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && padd ($rest | str join ' ')" }
+def paddh [...rest: string] { zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && paddh ($rest | str join ' ')" }
+def pls [...rest: string] { zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && pls ($rest | str join ' ')" }
+def premove [name: string] { zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && premove ($name)" }
+def pedit [...rest: string] { zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && pedit ($rest | str join ' ')" }
+def pexport [...rest: string] { zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && pexport ($rest | str join ' ')" }
+def pimport [...rest: string] { zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && pimport ($rest | str join ' ')" }
+def psecret [...rest: string] { zsh -c $"source ~/.popular-zsh/popular.zsh 2>/dev/null && psecret ($rest | str join ' ')" }
+def pupdate [] { zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && pupdate" }
+def phelp [] { zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && phelp" }
+def pcli [] { zsh -i -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && pcli" }
 ```
 
 ---
