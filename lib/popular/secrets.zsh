@@ -36,12 +36,13 @@ _popular_encrypt_value() {
   local val="$1"
   printf '%s' "${_POPULAR_ENC_PREFIX}${val}" | \
     env POPULAR_ENC_KEY="$_POPULAR_MASTER_KEY" \
-    openssl enc -aes-256-cbc -pbkdf2 -a -pass env:POPULAR_ENC_KEY 2>/dev/null
+    openssl enc -aes-256-cbc -pbkdf2 -a -pass env:POPULAR_ENC_KEY 2>/dev/null | \
+    tr -d '\n'
 }
 
 _popular_decrypt_value() {
   local ciphertext="$1" plaintext
-  plaintext=$(printf '%s' "$ciphertext" | \
+  plaintext=$(printf '%s\n' "$ciphertext" | \
     env POPULAR_ENC_KEY="$_POPULAR_MASTER_KEY" \
     openssl enc -d -aes-256-cbc -pbkdf2 -a -pass env:POPULAR_ENC_KEY 2>/dev/null)
   [[ "$plaintext" == "${_POPULAR_ENC_PREFIX}"* ]] || return 1
