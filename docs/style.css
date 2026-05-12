@@ -25,7 +25,21 @@
   --term-bg:      #0b0c17;
   --term-border:  #191a2e;
   --term-bar:     #121320;
-  --term-bar-lbl: #272a4a;
+  --term-bar-lbl: #565f89;
+
+  /* nav + callout */
+  --nav-bg:          rgba(13, 14, 26, 0.92);
+  --callout-bg:      #0f1020;
+  --callout-border:  #3d1a24;
+
+  /* badge accent borders + purple bg */
+  --badge-green-b:   #2a3d1a;
+  --badge-blue-b:    #1a2a4a;
+  --badge-orange-b:  #3d3010;
+  --badge-red-b:     #3d1a24;
+  --badge-cyan-b:    #1a2f3a;
+  --badge-purple-b:  #2e1a4a;
+  --badge-purple-bg: #1c1428;
 }
 
 html[data-theme="light"] {
@@ -49,7 +63,21 @@ html[data-theme="light"] {
   --term-bg:      #f0f0fb;
   --term-border:  #d0d0ec;
   --term-bar:     #e4e4f4;
-  --term-bar-lbl: #9494b8;
+  --term-bar-lbl: #7070a0;
+
+  /* nav + callout */
+  --nav-bg:          rgba(244, 244, 250, 0.95);
+  --callout-bg:      #fdf0f3;
+  --callout-border:  #e8c0cc;
+
+  /* badge accent borders + purple bg */
+  --badge-green-b:   #b8dca0;
+  --badge-blue-b:    #a8c0e0;
+  --badge-orange-b:  #e0c890;
+  --badge-red-b:     #f0a8b8;
+  --badge-cyan-b:    #98cce0;
+  --badge-purple-b:  #c8a8e8;
+  --badge-purple-bg: #f0e8fc;
 }
 
 html {
@@ -76,7 +104,7 @@ body {
 
 nav {
   border-bottom: 1px solid var(--border);
-  background: rgba(13, 14, 26, 0.92);
+  background: var(--nav-bg);
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
@@ -215,12 +243,12 @@ nav .inner {
   border: 1px solid var(--border);
 }
 
-.badge-green  { color: var(--green);  border-color: #2a3d1a; }
-.badge-blue   { color: var(--blue);   border-color: #1a2a4a; }
-.badge-orange { color: var(--orange); border-color: #3d3010; }
-.badge-red    { color: var(--red);    border-color: #3d1a24; }
-.badge-cyan   { color: var(--cyan);   border-color: #1a2f3a; }
-.badge-purple { color: var(--purple); border-color: #2e1a4a; background: #1c1428; }
+.badge-green  { color: var(--green);  border-color: var(--badge-green-b);  }
+.badge-blue   { color: var(--blue);   border-color: var(--badge-blue-b);   }
+.badge-orange { color: var(--orange); border-color: var(--badge-orange-b); }
+.badge-red    { color: var(--red);    border-color: var(--badge-red-b);    }
+.badge-cyan   { color: var(--cyan);   border-color: var(--badge-cyan-b);   }
+.badge-purple { color: var(--purple); border-color: var(--badge-purple-b); background: var(--badge-purple-bg); }
 
 /* ── Sections ────────────────────────────────────────────────────── */
 
@@ -319,7 +347,7 @@ section p {
 .dot-y { background: #e0af68; }
 .dot-g { background: #9ece6a; }
 
-.terminal-bar span {
+.terminal-bar > span:last-child {
   margin-left: auto;
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
@@ -389,7 +417,7 @@ th {
 
 td {
   padding: 0.65rem 1rem;
-  border-bottom: 1px solid #191a2e;
+  border-bottom: 1px solid var(--border);
   vertical-align: top;
 }
 
@@ -404,8 +432,8 @@ tr:last-child td {
 /* ── Encryption section callout ──────────────────────────────────── */
 
 .enc-callout {
-  background: #0f1020;
-  border: 1px solid #3d1a24;
+  background: var(--callout-bg);
+  border: 1px solid var(--callout-border);
   border-left: 3px solid var(--red);
   border-radius: 10px;
   padding: 1.25rem 1.5rem;

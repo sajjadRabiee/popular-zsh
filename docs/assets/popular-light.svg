@@ -1,0 +1,206 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 240" role="img" aria-labelledby="popularTitleL popularDescL">
+  <title id="popularTitleL">popular.zsh</title>
+  <desc id="popularDescL">Bookmark, template, and run zsh commands with optional secret placeholders.</desc>
+  <defs>
+    <linearGradient id="bgL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f4f4fa"/>
+      <stop offset="100%" stop-color="#eaeaf5"/>
+    </linearGradient>
+    <linearGradient id="titleGradL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#2851a3"/>
+      <stop offset="50%"  stop-color="#6b28c8"/>
+      <stop offset="100%" stop-color="#0a6080"/>
+    </linearGradient>
+    <linearGradient id="accentBarL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#2851a3" stop-opacity="0"/>
+      <stop offset="15%"  stop-color="#2851a3"/>
+      <stop offset="85%"  stop-color="#6b28c8"/>
+      <stop offset="100%" stop-color="#0a6080" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="borderGradL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#2851a3" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#6b28c8" stop-opacity="0.10"/>
+    </linearGradient>
+    <radialGradient id="pGlowL" cx="50%" cy="42%" r="52%">
+      <stop offset="0%"   stop-color="#6b28c8" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#6b28c8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bgGlowL" cx="68%" cy="52%" r="38%">
+      <stop offset="0%"   stop-color="#2851a3" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#2851a3" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glowL" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="shadowL" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#c8c8e4" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Outer background -->
+  <rect width="820" height="240" rx="16" fill="url(#bgL)"/>
+  <rect width="820" height="240" rx="16" fill="url(#bgGlowL)"/>
+
+  <!-- Main card -->
+  <rect x="16" y="16" width="788" height="208" rx="12"
+        fill="#ffffff" stroke="url(#borderGradL)" stroke-width="1.5"
+        filter="url(#shadowL)"/>
+
+  <!-- Title bar -->
+  <rect x="16" y="16" width="788" height="42" rx="12" fill="#eaeaf5"/>
+  <rect x="16" y="46" width="788" height="12"          fill="#eaeaf5"/>
+
+  <!-- Accent line below title bar -->
+  <rect x="16" y="57" width="788" height="1.5" fill="url(#accentBarL)"/>
+
+  <!-- Traffic-light buttons -->
+  <circle cx="40" cy="37" r="7" fill="#f7768e"/>
+  <circle cx="62" cy="37" r="7" fill="#e0af68"/>
+  <circle cx="84" cy="37" r="7" fill="#9ece6a"/>
+
+  <!-- Title bar centre label -->
+  <text x="410" y="43"
+        fill="#b0b0cc"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="12" text-anchor="middle" letter-spacing="1">popular.zsh — zsh</text>
+
+  <!-- ── Left zone: logo ──────────────────────────────────────────── -->
+  <ellipse cx="100" cy="148" rx="60" ry="64" fill="url(#pGlowL)"/>
+
+  <!-- Ghost "p" (depth layer) -->
+  <text x="100" y="176"
+        fill="url(#titleGradL)"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="82" font-weight="900" text-anchor="middle" opacity="0.07">p</text>
+
+  <!-- Glowing "p" -->
+  <text x="100" y="176"
+        fill="url(#titleGradL)"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="82" font-weight="900" text-anchor="middle"
+        filter="url(#glowL)">p</text>
+
+  <!-- Vertical separator -->
+  <line x1="178" y1="68" x2="178" y2="216" stroke="#d0d0ec" stroke-width="1.5"/>
+
+  <!-- ── Right zone: title + subtitle + badges + terminal ─────────── -->
+
+  <!-- Main title -->
+  <text x="202" y="112"
+        fill="url(#titleGradL)"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="36" font-weight="700"
+        filter="url(#glowL)">popular.zsh</text>
+
+  <!-- Subtitle -->
+  <text x="202" y="136"
+        fill="#6b6ea0"
+        font-family="ui-serif,Georgia,'Times New Roman',serif"
+        font-size="13" font-style="italic" letter-spacing="0.4"
+        opacity="0.9">bookmark  ·  template  ·  run  ·  pcli sub-shell</text>
+
+  <!-- ── Command pill badges ────────────────────────────────────── -->
+
+  <!-- padd -->
+  <rect x="202" y="152" width="46" height="22" rx="5" fill="#eaeaf5" stroke="#c8c8e4" stroke-width="1"/>
+  <text x="225" y="167" fill="#387010"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="11" font-weight="600" text-anchor="middle">padd</text>
+
+  <!-- p -->
+  <rect x="253" y="152" width="26" height="22" rx="5" fill="#eaeaf5" stroke="#c8c8e4" stroke-width="1"/>
+  <text x="266" y="167" fill="#2851a3"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="11" font-weight="600" text-anchor="middle">p</text>
+
+  <!-- pls -->
+  <rect x="284" y="152" width="34" height="22" rx="5" fill="#eaeaf5" stroke="#c8c8e4" stroke-width="1"/>
+  <text x="301" y="167" fill="#7a4800"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="11" font-weight="600" text-anchor="middle">pls</text>
+
+  <!-- psecret -->
+  <rect x="323" y="152" width="66" height="22" rx="5" fill="#eaeaf5" stroke="#c8c8e4" stroke-width="1"/>
+  <text x="356" y="167" fill="#b01838"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="11" font-weight="600" text-anchor="middle">psecret</text>
+
+  <!-- pedit -->
+  <rect x="394" y="152" width="48" height="22" rx="5" fill="#eaeaf5" stroke="#c8c8e4" stroke-width="1"/>
+  <text x="418" y="167" fill="#0a6080"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="11" font-weight="600" text-anchor="middle">pedit</text>
+
+  <!-- pupdate -->
+  <rect x="447" y="152" width="68" height="22" rx="5" fill="#eaeaf5" stroke="#c8c8e4" stroke-width="1"/>
+  <text x="481" y="167" fill="#387010"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="11" font-weight="600" text-anchor="middle">pupdate</text>
+
+  <!-- pcli (accented pill) -->
+  <rect x="520" y="152" width="44" height="22" rx="5" fill="#ede8f8" stroke="#6b28c8" stroke-width="1.5"/>
+  <text x="542" y="167" fill="#6b28c8"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="11" font-weight="700" text-anchor="middle">pcli</text>
+
+  <!-- ── Mini terminal panel ────────────────────────────────────── -->
+  <rect x="578" y="72" width="214" height="130" rx="8"
+        fill="#f0f0fb" stroke="#d0d0ec" stroke-width="1"/>
+
+  <!-- Terminal mini title bar -->
+  <rect x="578" y="72" width="214" height="22" rx="8" fill="#e4e4f4"/>
+  <rect x="578" y="84"  width="214" height="10"        fill="#e4e4f4"/>
+  <text x="685" y="87"
+        fill="#b0b0cc"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="9" text-anchor="middle">zsh</text>
+
+  <!-- Terminal line 1: padd -->
+  <text x="590" y="110"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="10.5">
+    <tspan fill="#c0c0d8">$ </tspan><tspan fill="#387010">padd</tspan><tspan fill="#1a1b2e"> gs </tspan><tspan fill="#6868a0">git status</tspan>
+  </text>
+
+  <!-- Terminal line 2: p gs -->
+  <text x="590" y="126"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="10.5">
+    <tspan fill="#c0c0d8">$ </tspan><tspan fill="#2851a3">p</tspan><tspan fill="#1a1b2e"> gs</tspan>
+  </text>
+
+  <!-- Terminal line 3: output -->
+  <text x="590" y="140"
+        fill="#8888b0"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="9">On branch main · nothing to commit</text>
+
+  <!-- Divider in terminal -->
+  <line x1="590" y1="148" x2="780" y2="148" stroke="#d0d0ec" stroke-width="1"/>
+
+  <!-- Terminal line 4: pcli -->
+  <text x="590" y="163"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="10.5">
+    <tspan fill="#c0c0d8">$ </tspan><tspan fill="#6b28c8">pcli</tspan>
+  </text>
+
+  <!-- Terminal line 5: pcli banner -->
+  <text x="590" y="177"
+        fill="#8070b8"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="9">[p]  popular shell</text>
+
+  <!-- Terminal line 6: pcli hint -->
+  <text x="590" y="190"
+        fill="#b0a8cc"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace"
+        font-size="8">saved cmds run directly · bye to exit</text>
+
+  <!-- Cursor blink -->
+  <rect x="590" y="194" width="6" height="10" rx="1" fill="#2851a3" opacity="0.40"/>
+</svg>

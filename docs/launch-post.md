@@ -1,6 +1,6 @@
 # popular.zsh: A tiny command launcher for zsh
 
-![popular.zsh banner](../assets/popular.svg)
+![popular.zsh banner](assets/popular.svg)
 
 `popular.zsh` is a small shell helper for people who keep retyping the same commands and want something lighter than a full snippet manager.
 

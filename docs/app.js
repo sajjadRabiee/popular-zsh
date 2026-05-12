@@ -3,6 +3,8 @@
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   document.getElementById('theme-toggle').textContent = theme === 'light' ? '☾' : '☀︎';
+  const banner = document.getElementById('hero-banner');
+  if (banner) banner.src = theme === 'light' ? 'assets/popular-light.svg' : 'assets/popular.svg';
   localStorage.setItem('popular-theme', theme);
 }
 

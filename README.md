@@ -2,14 +2,15 @@
 
 [![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue?style=flat-square)](https://sajjadrabiee.github.io/popular-zsh/)
 
-![popular.zsh — bookmark, template, and run commands in zsh](assets/popular.svg)
+![popular.zsh — bookmark, template, and run commands in zsh](docs/assets/popular.svg)
 
 Tiny `zsh` shortcuts for saving, running, and templating your most-used commands—with optional **secret placeholders** kept out of exported command files.
 
 Contributions are welcome; see [`CONTRIBUTING.md`](CONTRIBUTING.md). For responsible disclosure of security issues, see [`SECURITY.md`](SECURITY.md). See [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for a list of contributors.
 
-- Preview image: `assets/social-preview.png`
-- Banner (SVG): [`assets/popular.svg`](assets/popular.svg)
+- Preview image: `docs/assets/social-preview.png`
+- Banner (SVG): [`docs/assets/popular.svg`](docs/assets/popular.svg)
+- Banner light (SVG): [`docs/assets/popular-light.svg`](docs/assets/popular-light.svg)
 - Wiki docs: [`docs/wiki/`](docs/wiki/)
 - Launch post: [`docs/launch-post.md`](docs/launch-post.md)
 
@@ -311,6 +312,7 @@ Short version: saved shortcuts are executed with **`eval`** after template expan
 - [`lib/popular/`](lib/popular/) — UI, store, templates, secrets, per-command modules, completion
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to contribute
 - [`SECURITY.md`](SECURITY.md) — threat model and vulnerability reporting
-- [`assets/popular.svg`](assets/popular.svg) — README banner
+- [`docs/assets/popular.svg`](docs/assets/popular.svg) — README banner (dark)
+- [`docs/assets/popular-light.svg`](docs/assets/popular-light.svg) — README banner (light)
 - [`docs/launch-post.md`](docs/launch-post.md)
 - [`docs/wiki/`](docs/wiki/)
