@@ -139,6 +139,8 @@ _popular_usage() {
   _popular_usage_row "pedit [name]" "Edit store in \${EDITOR:-vim}, or one command’s text"
   _popular_usage_row "pupdate" "Re-download popular.zsh + lib from GitHub (\$POPULAR_REPO_BASE)"
   _popular_usage_row "pcli" "Drop into a sub-shell with saved commands available directly by name (no \`p\` prefix); type \`bye\` to exit"
+  _popular_usage_row "plock" "Lock secrets (clear cached master password for this session)"
+  _popular_usage_row "psecret-migrate" "Encrypt an existing plain-text secrets file with AES-256 (run once after upgrading)"
   _popular_usage_row "phelp" "Show this help"
   _popular_usage_sep
   inner_plain='  Examples'

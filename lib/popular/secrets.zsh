@@ -1,20 +1,91 @@
 # lib/popular/secrets.zsh
 
-# Reserved first column in POPULAR_SECRETS_FILE. Lookup always prefers global, then per-command (fallback).
 _POPULAR_SECRETS_GLOBAL='__global__'
+_POPULAR_SECRETS_HEADER='# popular.zsh secrets v2'
+
+# Master password cached for the shell session; never exported to child processes.
+typeset -g _POPULAR_MASTER_KEY
+
+# ---------------------------------------------------------------------------
+# Master password management
+# ---------------------------------------------------------------------------
+
+_popular_require_key() {
+  if [[ -z "${_POPULAR_MASTER_KEY:-}" ]]; then
+    read -rs "?popular.zsh master password: " _POPULAR_MASTER_KEY </dev/tty
+    print >/dev/tty
+  fi
+  [[ -n "${_POPULAR_MASTER_KEY:-}" ]]
+}
+
+plock() {
+  _POPULAR_MASTER_KEY=''
+  _popular_info "Secrets locked. Password will be prompted on next use."
+}
+
+# ---------------------------------------------------------------------------
+# AES-256-CBC encryption / decryption (openssl, PBKDF2, base64)
+# Password is passed via environment variable to avoid process-list exposure.
+# A sentinel prefix is prepended before encrypting so decryption can detect
+# a wrong password (AES-CBC provides no built-in authentication).
+# ---------------------------------------------------------------------------
+
+_POPULAR_ENC_PREFIX='v2:'
+
+_popular_encrypt_value() {
+  local val="$1"
+  printf '%s' "${_POPULAR_ENC_PREFIX}${val}" | \
+    env POPULAR_ENC_KEY="$_POPULAR_MASTER_KEY" \
+    openssl enc -aes-256-cbc -pbkdf2 -a -pass env:POPULAR_ENC_KEY 2>/dev/null
+}
+
+_popular_decrypt_value() {
+  local ciphertext="$1" plaintext
+  plaintext=$(printf '%s' "$ciphertext" | \
+    env POPULAR_ENC_KEY="$_POPULAR_MASTER_KEY" \
+    openssl enc -d -aes-256-cbc -pbkdf2 -a -pass env:POPULAR_ENC_KEY 2>/dev/null)
+  [[ "$plaintext" == "${_POPULAR_ENC_PREFIX}"* ]] || return 1
+  print -r -- "${plaintext#${_POPULAR_ENC_PREFIX}}"
+}
+
+# ---------------------------------------------------------------------------
+# Secrets file management
+# ---------------------------------------------------------------------------
+
+_popular_secrets_is_encrypted() {
+  local first_line
+  IFS= read -r first_line < "$POPULAR_SECRETS_FILE" 2>/dev/null
+  [[ "$first_line" == "$_POPULAR_SECRETS_HEADER"* ]]
+}
 
 _popular_ensure_secrets_file() {
-  [[ -f "$POPULAR_SECRETS_FILE" ]] || : > "$POPULAR_SECRETS_FILE"
+  if [[ ! -f "$POPULAR_SECRETS_FILE" ]]; then
+    print -- "$_POPULAR_SECRETS_HEADER" > "$POPULAR_SECRETS_FILE"
+    chmod 600 "$POPULAR_SECRETS_FILE" 2>/dev/null
+    return
+  fi
   chmod 600 "$POPULAR_SECRETS_FILE" 2>/dev/null
+  if [[ -s "$POPULAR_SECRETS_FILE" ]] && ! _popular_secrets_is_encrypted; then
+    _popular_warn "popular.zsh: secrets file is not encrypted. Run: psecret-migrate"
+  fi
 }
+
+# ---------------------------------------------------------------------------
+# Core lookup / set / remove
+# ---------------------------------------------------------------------------
 
 _popular_secrets_lookup_global_only() {
   local key="$1" enc
 
   _popular_ensure_secrets_file
-  enc=$(awk -F'\t' -v g="$_POPULAR_SECRETS_GLOBAL" -v key="$key" '$1 == g && $2 == key { print $3; exit }' "$POPULAR_SECRETS_FILE")
+  _popular_require_key || return 1
+  enc=$(awk -F'\t' -v g="$_POPULAR_SECRETS_GLOBAL" -v key="$key" \
+    '$1 == g && $2 == key { print $3; exit }' "$POPULAR_SECRETS_FILE")
   [[ -n "$enc" ]] || return 1
-  REPLY=$(_popular_command_decode "$enc")
+  REPLY=$(_popular_decrypt_value "$enc") || {
+    _popular_warn "popular.zsh: failed to decrypt secret '${key}' — wrong password? Run: plock"
+    return 1
+  }
   return 0
 }
 
@@ -22,22 +93,33 @@ _popular_secrets_lookup() {
   local name="$1" key="$2" enc
 
   _popular_ensure_secrets_file
-  enc=$(awk -F'\t' -v g="$_POPULAR_SECRETS_GLOBAL" -v key="$key" '$1 == g && $2 == key { print $3; exit }' "$POPULAR_SECRETS_FILE")
+  _popular_require_key || return 1
+  enc=$(awk -F'\t' -v g="$_POPULAR_SECRETS_GLOBAL" -v key="$key" \
+    '$1 == g && $2 == key { print $3; exit }' "$POPULAR_SECRETS_FILE")
   if [[ -z "$enc" ]]; then
-    enc=$(awk -F'\t' -v name="$name" -v key="$key" '$1 == name && $2 == key { print $3; exit }' "$POPULAR_SECRETS_FILE")
+    enc=$(awk -F'\t' -v name="$name" -v key="$key" \
+      '$1 == name && $2 == key { print $3; exit }' "$POPULAR_SECRETS_FILE")
   fi
   [[ -n "$enc" ]] || return 1
-  REPLY=$(_popular_command_decode "$enc")
+  REPLY=$(_popular_decrypt_value "$enc") || {
+    _popular_warn "popular.zsh: failed to decrypt secret '${key}' — wrong password? Run: plock"
+    return 1
+  }
   return 0
 }
 
 _popular_secrets_set() {
   local name="$1" key="$2" val="$3" enc
 
-  enc=$(_popular_command_encode "$val")
-
   _popular_ensure_secrets_file
-  awk -F'\t' -v name="$name" -v key="$key" '$1 != name || $2 != key' "$POPULAR_SECRETS_FILE" > "${POPULAR_SECRETS_FILE}.tmp"
+  _popular_require_key || return 1
+  enc=$(_popular_encrypt_value "$val") || {
+    _popular_warn "psecret: encryption failed (is openssl installed?)"
+    return 1
+  }
+
+  awk -F'\t' -v name="$name" -v key="$key" \
+    '$1 != name || $2 != key' "$POPULAR_SECRETS_FILE" > "${POPULAR_SECRETS_FILE}.tmp"
   mv "${POPULAR_SECRETS_FILE}.tmp" "$POPULAR_SECRETS_FILE"
   print -r -- "$name"$'\t'"$key"$'\t'"$enc" >> "$POPULAR_SECRETS_FILE"
   chmod 600 "$POPULAR_SECRETS_FILE" 2>/dev/null
@@ -50,6 +132,10 @@ _popular_secrets_remove_for_command() {
   awk -F'\t' -v name="$name" '$1 != name' "$POPULAR_SECRETS_FILE" > "${POPULAR_SECRETS_FILE}.tmp"
   mv "${POPULAR_SECRETS_FILE}.tmp" "$POPULAR_SECRETS_FILE"
 }
+
+# ---------------------------------------------------------------------------
+# Secret substitution in rendered commands
+# ---------------------------------------------------------------------------
 
 _popular_substitute_secrets() {
   local entry="$1"
@@ -129,6 +215,9 @@ _popular_import_prompt_missing_secrets() {
   done < "$src"
 
   (( ${#pairs} )) || return 0
+
+  # Prompt for master key upfront before the secrets prompts begin.
+  _popular_require_key || return 1
 
   local -i need_any=0
   for pair in ${(k)pairs}; do
@@ -235,6 +324,65 @@ _popular_collect_all_secret_keys() {
   done < "$POPULAR_COMMANDS_FILE"
 }
 
+# ---------------------------------------------------------------------------
+# Migration: v1 plain-text → v2 encrypted
+# ---------------------------------------------------------------------------
+
+psecret-migrate() {
+  if [[ ! -f "$POPULAR_SECRETS_FILE" ]]; then
+    _popular_warn "psecret-migrate: no secrets file at $POPULAR_SECRETS_FILE"
+    return 1
+  fi
+
+  if _popular_secrets_is_encrypted; then
+    _popular_info "Secrets file is already encrypted — nothing to do."
+    return 0
+  fi
+
+  if ! command -v openssl &>/dev/null; then
+    _popular_warn "psecret-migrate: openssl not found — cannot encrypt"
+    return 1
+  fi
+
+  _popular_require_key || return 1
+
+  local -a entries=()
+  local line name_f key_f val_f dec_val
+
+  while IFS=$'\t' read -r name_f key_f val_f || [[ -n "$name_f" ]]; do
+    [[ -z "$name_f" || "$name_f" == '#'* ]] && continue
+    [[ -n "$name_f" && -n "$key_f" && -n "$val_f" ]] || continue
+    dec_val=$(_popular_command_decode "$val_f")
+    entries+=("$name_f"$'\t'"$key_f"$'\t'"$dec_val")
+  done < "$POPULAR_SECRETS_FILE"
+
+  cp "$POPULAR_SECRETS_FILE" "${POPULAR_SECRETS_FILE}.bak"
+  print -- "$_POPULAR_SECRETS_HEADER" > "$POPULAR_SECRETS_FILE"
+  chmod 600 "$POPULAR_SECRETS_FILE" 2>/dev/null
+
+  local -i count=0
+  local entry name_field key_field val_field enc
+  for entry in "${entries[@]}"; do
+    name_field="${entry%%$'\t'*}"
+    entry="${entry#*$'\t'}"
+    key_field="${entry%%$'\t'*}"
+    val_field="${entry#*$'\t'}"
+    enc=$(_popular_encrypt_value "$val_field") || {
+      _popular_warn "psecret-migrate: encryption failed for ${name_field}/${key_field} — skipped"
+      continue
+    }
+    print -r -- "$name_field"$'\t'"$key_field"$'\t'"$enc" >> "$POPULAR_SECRETS_FILE"
+    (( count++ ))
+  done
+
+  _popular_info "Migrated ${count} secret(s) to AES-256 encrypted format."
+  _popular_info "Unencrypted backup: ${POPULAR_SECRETS_FILE}.bak"
+}
+
+# ---------------------------------------------------------------------------
+# psecret command
+# ---------------------------------------------------------------------------
+
 psecret() {
   local name="" sk="" val global=0
 
@@ -301,7 +449,7 @@ psecret() {
 
   _popular_secrets_set "$name" "$sk" "$val"
   if (( global )); then
-    _popular_info "Saved global secret '${sk}' (${_POPULAR_SECRETS_FILE})"
+    _popular_info "Saved global secret '${sk}'"
   else
     _popular_info "Saved secret '${sk}' for '${name}'"
   fi
