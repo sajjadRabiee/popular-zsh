@@ -198,6 +198,92 @@ export POPULAR_COMMANDS_FILE=/path/to/your/file
 export POPULAR_SECRETS_FILE=/path/to/your/secrets
 ```
 
+## Using from other shells
+
+`popular.zsh` is written for **zsh**, but users of **bash**, **fish**, or any other shell can still use it as long as `zsh` is installed on the system (it ships with macOS and is one package away on Linux: `apt install zsh` / `brew install zsh`).
+
+### Bash
+
+Add thin wrapper functions to your `~/.bashrc`. Each one delegates to a one-shot `zsh` process:
+
+```bash
+# ~/.bashrc
+_p_zsh() { zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && \"\$@\"" -- "$@"; }
+p()       { _p_zsh p       "$@"; }
+padd()    { _p_zsh padd    "$@"; }
+pls()     { _p_zsh pls     "$@"; }
+premove() { _p_zsh premove "$@"; }
+pedit()   { _p_zsh pedit   "$@"; }
+pexport() { _p_zsh pexport "$@"; }
+pimport() { _p_zsh pimport "$@"; }
+psecret() { _p_zsh psecret "$@"; }
+pupdate() { _p_zsh pupdate        ; }
+phelp()   { _p_zsh phelp          ; }
+pcli()    { zsh -i -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && pcli"; }
+```
+
+> **Note:** because each call runs in its own `zsh` process, saved commands that `cd` into a directory or export variables will not affect your current bash session—that is expected behaviour. Use `pcli` (which opens an interactive zsh sub-shell) if you need a persistent working environment.
+
+### Fish
+
+Add equivalent functions to your `~/.config/fish/config.fish`:
+
+```fish
+# ~/.config/fish/config.fish
+function _p_zsh
+    set cmd $argv[1]; set -e argv[1]
+    zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && $cmd \"\$@\"" -- $argv
+end
+function p;       _p_zsh p       $argv; end
+function padd;    _p_zsh padd    $argv; end
+function pls;     _p_zsh pls     $argv; end
+function premove; _p_zsh premove $argv; end
+function pedit;   _p_zsh pedit   $argv; end
+function pexport; _p_zsh pexport $argv; end
+function pimport; _p_zsh pimport $argv; end
+function psecret; _p_zsh psecret $argv; end
+function pupdate; zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && pupdate"; end
+function phelp;   zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && phelp";   end
+function pcli;    zsh -i -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && pcli"; end
+```
+
+### Any shell — interactive session with `pcli`
+
+If `popular.zsh` is sourced in your `~/.zshrc` (the install script does this automatically), you can drop into a fully-featured popular session from **any** shell simply by starting an interactive zsh:
+
+```sh
+zsh          # your .zshrc is loaded, popular.zsh included
+pcli         # now inside popular shell — saved names work directly
+```
+
+Or in one command:
+
+```sh
+zsh -i -c "source ~/.popular-zsh/popular.zsh && pcli"
+```
+
+### Nushell
+
+Nushell can call external commands directly. Wrap each `popular.zsh` function as a `def` that shells out to `zsh`:
+
+```nu
+# ~/.config/nushell/config.nu
+def p [...rest] { zsh -c $"source ~/.popular-zsh/popular.zsh && p ($rest | str join ' ')" }
+def pls [...rest] { zsh -c $"source ~/.popular-zsh/popular.zsh && pls ($rest | str join ' ')" }
+def pcli [] { zsh -i -c "source ~/.popular-zsh/popular.zsh && pcli" }
+```
+
+### Custom `POPULAR_COMMANDS_FILE`
+
+All shells share the same backing file (`~/.popular_commands` by default), so commands saved in one shell are immediately visible from any other.
+
+```bash
+# bash / fish / nu — point at the same file your zsh uses
+export POPULAR_COMMANDS_FILE="$HOME/.popular_commands"
+```
+
+See [`docs/wiki/Other-Shells.md`](docs/wiki/Other-Shells.md) for more detail and troubleshooting tips.
+
 ## Contributing
 
 Bug reports, docs fixes, and pull requests are appreciated. Start with [`CONTRIBUTING.md`](CONTRIBUTING.md) for local setup, the install/`pupdate` path sync rule, and review expectations.

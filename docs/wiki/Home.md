@@ -54,4 +54,5 @@ p serve --port=8000
 - [Command Reference](Command-Reference.md)
 - [Templates](Templates.md)
 - [Examples](Examples.md)
+- [Other Shells](Other-Shells.md)
 - [Why popular.zsh?](Why-popular.zsh.md)
