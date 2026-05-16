@@ -141,7 +141,6 @@ nav .inner {
   color: var(--dim);
   text-decoration: none;
   font-size: 0.875rem;
-  transition: color 0.15s;
 }
 
 .nav-links a:hover {
@@ -211,7 +210,6 @@ nav .inner {
   cursor: pointer;
   font-size: 0.75rem;
   padding: 0.3rem 0.75rem;
-  transition: all 0.15s;
   white-space: nowrap;
 }
 
@@ -300,7 +298,6 @@ section p {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 1.25rem 1.5rem;
-  transition: border-color 0.2s;
 }
 
 .feature-card:hover {
@@ -530,7 +527,6 @@ tr:last-child td {
   font-size: 0.82rem;
   cursor: pointer;
   color: var(--dim);
-  transition: all 0.15s;
 }
 
 .shell-tab.active {
@@ -603,7 +599,6 @@ footer a {
   color: var(--dim);
   text-decoration: none;
   font-size: 0.875rem;
-  transition: color 0.15s;
 }
 
 footer a:hover {
@@ -625,7 +620,6 @@ footer p {
   cursor: pointer;
   font-size: 0.82rem;
   padding: 0.3rem 0.65rem;
-  transition: color 0.15s, border-color 0.15s;
   line-height: 1;
   user-select: none;
 }
