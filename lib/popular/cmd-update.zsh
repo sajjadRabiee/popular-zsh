@@ -22,11 +22,31 @@ typeset -ga _popular_upstream_paths=(
 pupdate() {
   [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_pupdate; return 0; }
   local base="${POPULAR_REPO_BASE:-https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main}"
-  local root="$_POPULAR_INSTALL_DIR"
+  # POPULAR_INSTALL_DIR env var overrides auto-detected _POPULAR_INSTALL_DIR;
+  # --dir / -d flag overrides both.
+  local root="${POPULAR_INSTALL_DIR:-$_POPULAR_INSTALL_DIR}"
   local rel tmp
 
+  while [[ "${1:-}" == -* ]]; do
+    case "$1" in
+      -d | --dir)
+        shift
+        if [[ -z "${1:-}" ]]; then
+          _popular_warn "pupdate: --dir requires a path"
+          return 1
+        fi
+        root="$1"
+        ;;
+      *)
+        _popular_warn "pupdate: unknown option: $1"$'\n'"usage: pupdate [-d|--dir <path>]"$'\n'"run 'pupdate --help' for details"
+        return 1
+        ;;
+    esac
+    shift
+  done
+
   if [[ -z "$root" || ! -f "$root/popular.zsh" ]]; then
-    _popular_warn "pupdate: could not resolve install directory (is popular.zsh sourced from a file?)"
+    _popular_warn "pupdate: could not resolve install directory"$'\n'"hint: run 'pupdate --dir /path/to/popular-zsh' or set POPULAR_INSTALL_DIR"
     return 1
   fi
 

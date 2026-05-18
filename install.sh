@@ -35,11 +35,41 @@ for rel in "${POPULAR_MODULE_PATHS[@]}"; do
 done
 
 # ---------------------------------------------------------------------------
+# Interactive RC file prompt
+# ---------------------------------------------------------------------------
+
+# Ask the user which RC file to inject into.
+# Uses /dev/tty so it works even when the script is piped from curl.
+# Falls back silently to $1 (the default) when:
+#   - POPULAR_RC_FILE env var is set (non-interactive override)
+#   - /dev/tty is not available (truly non-interactive)
+_popular_ask_rc() {
+  local default="$1"
+  if [[ -n "${POPULAR_RC_FILE:-}" ]]; then
+    print "${POPULAR_RC_FILE/#\~/$HOME}"
+    return
+  fi
+  if [[ -e /dev/tty ]]; then
+    print "" >/dev/tty
+    print "Where should the source line be added?" >/dev/tty
+    print -n "  RC file [${default}]: " >/dev/tty
+    local answer
+    read -r answer </dev/tty
+    answer="${answer:-$default}"
+    print "${answer/#\~/$HOME}"
+  else
+    print "$default"
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # Shell-specific config injection
 # ---------------------------------------------------------------------------
 
 _popular_inject_zsh() {
-  local rc="${ZDOTDIR:-$HOME}/.zshrc"
+  local default_rc="${ZDOTDIR:-$HOME}/.zshrc"
+  local rc
+  rc="$(_popular_ask_rc "$default_rc")"
   if ! grep -Fq "source $TARGET_FILE" "$rc" 2>/dev/null; then
     { print; print "# popular.zsh"; print "source $TARGET_FILE"; } >> "$rc"
   fi
@@ -49,10 +79,12 @@ _popular_inject_zsh() {
 }
 
 _popular_inject_bash() {
-  local rc="$HOME/.bashrc"
-  if [[ ! -f "$rc" && -f "$HOME/.bash_profile" ]]; then
-    rc="$HOME/.bash_profile"
+  local default_rc="$HOME/.bashrc"
+  if [[ ! -f "$default_rc" && -f "$HOME/.bash_profile" ]]; then
+    default_rc="$HOME/.bash_profile"
   fi
+  local rc
+  rc="$(_popular_ask_rc "$default_rc")"
   if grep -Fq '_p_zsh()' "$rc" 2>/dev/null; then
     print "popular.zsh bash wrappers already in $rc — skipping."
     print "Reload your shell with:  source \"$rc\""
@@ -89,8 +121,11 @@ SNIPPET
 
 _popular_inject_fish() {
   local config_dir="$HOME/.config/fish"
-  local rc="$config_dir/config.fish"
+  local default_rc="$config_dir/config.fish"
   mkdir -p "$config_dir"
+  local rc
+  rc="$(_popular_ask_rc "$default_rc")"
+  mkdir -p "${rc:h}"
   if grep -Fq 'function _p_zsh' "$rc" 2>/dev/null; then
     print "popular.zsh fish wrappers already in $rc — skipping."
     print "Reload your shell with:  source \"$rc\""
@@ -127,8 +162,11 @@ SNIPPET
 
 _popular_inject_nushell() {
   local config_dir="$HOME/.config/nushell"
-  local rc="$config_dir/config.nu"
+  local default_rc="$config_dir/config.nu"
   mkdir -p "$config_dir"
+  local rc
+  rc="$(_popular_ask_rc "$default_rc")"
+  mkdir -p "${rc:h}"
   if grep -Fq 'def p [' "$rc" 2>/dev/null; then
     print "popular.zsh nushell wrappers already in $rc — skipping."
     print "Restart nushell to apply."

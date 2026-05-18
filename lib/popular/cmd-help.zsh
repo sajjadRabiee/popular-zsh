@@ -114,8 +114,14 @@ _popular_help_pcli() {
 
 _popular_help_pupdate() {
   _popular_help_open "pupdate" "update popular.zsh from GitHub"
-  _popular_usage_row "pupdate" "Download all modules from \$POPULAR_REPO_BASE and re-source"
-  _popular_usage_row "POPULAR_REPO_BASE" "Override the base URL (default: GitHub main branch)"
+  _popular_usage_row "pupdate [-d <dir>]" "Download all modules from \$POPULAR_REPO_BASE and re-source"
+  _popular_usage_row "-d / --dir <path>" "Override install directory (default: \$_POPULAR_INSTALL_DIR)"
+  _popular_usage_row "POPULAR_INSTALL_DIR" "Env-var alternative to --dir; set in your RC file"
+  _popular_usage_row "POPULAR_REPO_BASE"   "Override the base URL (default: GitHub main branch)"
+  _popular_help_examples
+  _popular_usage_example_line "pupdate"
+  _popular_usage_example_line "pupdate --dir ~/.config/popular-zsh"
+  _popular_usage_example_line "POPULAR_INSTALL_DIR=~/.config/popular-zsh pupdate"
   _popular_help_close
 }
 
