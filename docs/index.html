@@ -8,27 +8,52 @@
   <meta property="og:title" content="popular.zsh">
   <meta property="og:description" content="Bookmark, template, and run zsh commands. AES-256-CBC encrypted secrets, pcli sub-shell, and tab completion.">
   <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- ── Nav ───────────────────────────────────────────────────── -->
-  <nav>
+  <div class="grain"></div>
+
+  <!-- ── Hover Panel ────────────────────────────────────────── -->
+  <div id="cmd-hover-panel">
+    <div class="hp-bar">
+      <span class="dot dot-r"></span>
+      <span class="dot dot-y"></span>
+      <span class="dot dot-g"></span>
+      <span class="hp-bar-title" id="hp-cmd-name">command</span>
+    </div>
+    <div id="hp-terminal"></div>
+    <div class="hp-meta">
+      <div class="hp-syntax" id="hp-syntax"></div>
+      <div class="hp-desc" id="hp-desc"></div>
+    </div>
+  </div>
+
+  <!-- ── Nav ───────────────────────────────────────────────── -->
+  <nav id="main-nav">
     <div class="inner">
       <a class="nav-brand" href="#">popular.zsh</a>
-      <ul class="nav-links">
-        <li><a href="#quickstart">Quick start</a></li>
-        <li><a href="#templates">Templates</a></li>
-        <li><a href="#encryption">Encryption</a></li>
-        <li><a href="#pcli">pcli</a></li>
-        <li><a href="#other-shells">Other shells</a></li>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#templates" onclick="closeMenu()">Templates</a></li>
+        <li><a href="#encryption" onclick="closeMenu()">Encryption</a></li>
+        <li><a href="#pcli" onclick="closeMenu()">pcli</a></li>
+        <li><a href="#playground" onclick="closeMenu()">Playground</a></li>
+        <li><a href="#other-shells" onclick="closeMenu()">Other shells</a></li>
         <li><a href="https://github.com/sajjadRabiee/popular-zsh" target="_blank" rel="noopener">GitHub ↗</a></li>
       </ul>
-      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode">☀︎</button>
+      <div class="nav-right">
+        <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode">☀︎</button>
+        <button class="nav-menu-btn" id="nav-menu-btn" onclick="toggleMenu()" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
   </nav>
 
-  <!-- ── Hero ──────────────────────────────────────────────────── -->
+  <!-- ── Hero ──────────────────────────────────────────────── -->
   <header class="hero container">
     <img
       id="hero-banner"
@@ -60,18 +85,19 @@
     </div>
   </header>
 
-  <!-- ── Features ──────────────────────────────────────────────── -->
+  <!-- ── Features ──────────────────────────────────────────── -->
   <section id="features">
     <div class="container">
       <h2><span class="hl">What you get</span></h2>
       <div class="features">
 
-        <div class="feature-card">
+        <div class="feature-card" data-cmd="padd">
           <div class="cmd" style="color:var(--green)">padd / paddh</div>
           <p>Save commands by name, or grab a line straight from your shell history by event number.</p>
+          <span class="card-hint">— hover to preview</span>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-cmd="p">
           <div class="cmd" style="color:var(--blue)">p</div>
           <p>
             Run a saved command. Templates expand
@@ -80,115 +106,74 @@
             <code class="mono" style="font-size:.8rem;color:var(--red)">&lt;&lt;secret&gt;&gt;</code>
             before exec.
           </p>
+          <span class="card-hint">— hover to preview</span>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-cmd="pls">
           <div class="cmd" style="color:var(--orange)">pls</div>
           <p>Browse saved commands with template hints and secret markers shown inline.</p>
+          <span class="card-hint">— hover to preview</span>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-cmd="psecret">
           <div class="cmd" style="color:var(--red)">psecret</div>
           <p>
             Store sensitive values encrypted with AES-256-CBC. A master password is
             prompted once per session and cached in memory — never written to disk.
           </p>
+          <span class="card-hint">— hover to preview</span>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-cmd="plock">
           <div class="cmd" style="color:var(--red)">plock</div>
           <p>Clear the cached master password from the current shell session. The next secret access will re-prompt.</p>
+          <span class="card-hint">— hover to preview</span>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-cmd="pedit">
           <div class="cmd" style="color:var(--cyan)">pedit</div>
           <p>Edit the full store or a single command in your preferred editor (<code class="mono" style="font-size:.8rem">$EDITOR</code> or vim).</p>
+          <span class="card-hint">— hover to preview</span>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-cmd="pcli">
           <div class="cmd" style="color:var(--purple)">pcli</div>
           <p>Drop into a sub-shell where saved names work directly — no <code class="mono" style="font-size:.8rem">p</code> prefix. Tab completion included.</p>
+          <span class="card-hint">— hover to preview</span>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-cmd="pexport">
           <div class="cmd" style="color:var(--blue)">pexport / pimport</div>
           <p>Back up, share, or merge command stores. Exports never include secrets — safe to commit.</p>
+          <span class="card-hint">— hover to preview</span>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-cmd="psecret-migrate">
           <div class="cmd" style="color:var(--orange)">psecret-migrate</div>
           <p>Upgrade a v1 plain-text secrets file to the v2 AES-256-CBC encrypted format in one command.</p>
+          <span class="card-hint">— hover to preview</span>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-cmd="psecret-reset">
           <div class="cmd" style="color:var(--orange)">psecret-reset</div>
           <p>
             Change your master password and re-encrypt every secret in place. If the old password
             is lost, wipes all secrets and starts fresh — no way to recover without the original key.
           </p>
+          <span class="card-hint">— hover to preview</span>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-cmd="pupdate">
           <div class="cmd" style="color:var(--green)">pupdate</div>
           <p>Pull the latest <code class="mono" style="font-size:.8rem">popular.zsh</code> and all modules from GitHub in one command.</p>
+          <span class="card-hint">— hover to preview</span>
         </div>
 
       </div>
     </div>
   </section>
 
-  <!-- ── Quick start ────────────────────────────────────────────── -->
-  <section id="quickstart">
-    <div class="container">
-      <h2><span class="hl">Quick start</span></h2>
-
-      <h3>Save and run a command</h3>
-      <div class="terminal">
-        <div class="terminal-bar">
-          <span class="dot dot-r"></span>
-          <span class="dot dot-y"></span>
-          <span class="dot dot-g"></span>
-          <span>zsh</span>
-        </div>
-        <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">gs git status</span>
-<span class="p">$</span> <span class="kp">p</span> <span class="a">gs</span>
-<span class="o">On branch main · nothing to commit</span>
-
-<span class="c"># Save from your history by event number</span>
-<span class="p">$</span> <span class="k">paddh</span> <span class="a">523 deploy-staging</span>
-<span class="p">$</span> <span class="kp">p</span> <span class="a">deploy-staging</span></pre>
-      </div>
-
-      <h3>Browse and manage</h3>
-      <div class="terminal">
-        <div class="terminal-bar">
-          <span class="dot dot-r"></span>
-          <span class="dot dot-y"></span>
-          <span class="dot dot-g"></span>
-          <span>zsh</span>
-        </div>
-        <pre><span class="p">$</span> <span class="kl">pls</span>               <span class="c"># list everything</span>
-<span class="p">$</span> <span class="kl">pls</span> <span class="a">git</span>           <span class="c"># filter by substring</span>
-<span class="p">$</span> <span class="ke">pedit</span> <span class="a">gs</span>         <span class="c"># edit just this command</span>
-<span class="p">$</span> <span class="a">premove gs</span>       <span class="c"># delete it</span></pre>
-      </div>
-
-      <h3>Export and import</h3>
-      <div class="terminal">
-        <div class="terminal-bar">
-          <span class="dot dot-r"></span>
-          <span class="dot dot-y"></span>
-          <span class="dot dot-g"></span>
-          <span>zsh</span>
-        </div>
-        <pre><span class="p">$</span> <span class="k">pexport</span> <span class="a">~/my-commands.txt</span>    <span class="c"># safe to share — no secrets</span>
-<span class="p">$</span> <span class="k">pimport</span> <span class="a">~/my-commands.txt</span>    <span class="c"># merge into current store</span>
-<span class="p">$</span> <span class="k">pimport</span> <span class="a">-r ~/my-commands.txt</span> <span class="c"># replace store entirely</span></pre>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── Templates ─────────────────────────────────────────────── -->
+  <!-- ── Templates ─────────────────────────────────────────── -->
   <section id="templates">
     <div class="container">
       <h2><span class="hl">Templates</span></h2>
@@ -298,7 +283,7 @@
     </div>
   </section>
 
-  <!-- ── Encryption ─────────────────────────────────────────────── -->
+  <!-- ── Encryption ────────────────────────────────────────── -->
   <section id="encryption">
     <div class="container">
       <h2><span class="hl">Encryption</span></h2>
@@ -350,106 +335,10 @@
 
       </div>
 
-      <h3>Secrets workflow</h3>
-      <div class="terminal">
-        <div class="terminal-bar">
-          <span class="dot dot-r"></span>
-          <span class="dot dot-y"></span>
-          <span class="dot dot-g"></span>
-          <span>zsh</span>
-        </div>
-        <pre><span class="c"># Save a command with a secret placeholder</span>
-<span class="p">$</span> <span class="k">padd</span> <span class="a">ci</span> <span class="q">'curl -u "<span class="sk">&lt;&lt;username&gt;&gt;</span>:<span class="sk">&lt;&lt;api-token&gt;&gt;</span>" https://ci.example.com/hook'</span>
-
-<span class="c"># Store secret values — master password is prompted once</span>
-<span class="p">$</span> <span class="ks">psecret</span> <span class="a">-g username</span>
-<span class="o">popular.zsh master password: ••••••••</span>
-<span class="o">Global secret 'username': robot</span>
-
-<span class="p">$</span> <span class="ks">psecret</span> <span class="a">-g api-token</span>
-<span class="o">Global secret 'api-token': ••••••••</span>
-
-<span class="c"># Run — secrets are decrypted and injected at runtime</span>
-<span class="p">$</span> <span class="kp">p</span> <span class="a">ci</span>
-
-<span class="c"># Lock the master password when stepping away</span>
-<span class="p">$</span> <span class="kk">plock</span>
-<span class="o">Secrets locked. Password will be prompted on next use.</span></pre>
-      </div>
-
-      <h3>Migrating from v1 (plain-text secrets)</h3>
-      <div class="terminal">
-        <div class="terminal-bar">
-          <span class="dot dot-r"></span>
-          <span class="dot dot-y"></span>
-          <span class="dot dot-g"></span>
-          <span>zsh</span>
-        </div>
-        <pre><span class="p">$</span> <span class="km">psecret-migrate</span>
-<span class="o">popular.zsh master password: ••••••••</span>
-<span class="o">Migrated 4 secret(s) to AES-256 encrypted format.</span>
-<span class="o">Unencrypted backup: ~/.popular_commands.secrets.bak</span>
-
-<span class="c"># Remove the backup once you have verified the migration</span>
-<span class="p">$</span> <span class="a">rm ~/.popular_commands.secrets.bak</span></pre>
-      </div>
-
-      <h3>Changing your master password (<code class="mono" style="font-size:.85rem">psecret-reset</code>)</h3>
-      <p>
-        <code class="mono" style="font-size:.85rem">psecret-reset</code> first asks whether you still
-        have your old password. The two paths are fundamentally different:
-      </p>
-
-      <div class="two-col" style="margin-top:1rem">
-
-        <div>
-          <h3 style="font-size:.9rem;margin-bottom:.5rem">Still have the old password — rekey</h3>
-          <div class="terminal">
-            <div class="terminal-bar">
-              <span class="dot dot-r"></span>
-              <span class="dot dot-y"></span>
-              <span class="dot dot-g"></span>
-              <span>zsh</span>
-            </div>
-            <pre><span class="p">$</span> <span class="km">psecret-reset</span>
-<span class="o">Do you still have your old master password? [y/N] </span><span class="a">y</span>
-<span class="o">Old master password: ••••••••</span>
-<span class="o">New master password: ••••••••</span>
-<span class="o">Confirm new master password: ••••••••</span>
-<span class="o">Re-encrypted 5 secret(s). New master password set.</span></pre>
-          </div>
-          <p style="font-size:.85rem;color:var(--dimmer);margin-top:.5rem">
-            Verifies the old password, then decrypts every secret and re-encrypts with the new one. Nothing is lost.
-          </p>
-        </div>
-
-        <div>
-          <h3 style="font-size:.9rem;margin-bottom:.5rem">Lost the old password — wipe and restart</h3>
-          <div class="terminal">
-            <div class="terminal-bar">
-              <span class="dot dot-r"></span>
-              <span class="dot dot-y"></span>
-              <span class="dot dot-g"></span>
-              <span>zsh</span>
-            </div>
-            <pre><span class="p">$</span> <span class="km">psecret-reset</span>
-<span class="o">Do you still have your old master password? [y/N] </span><span class="a">n</span>
-<span class="o">WARNING: ALL encrypted secrets will be permanently deleted.</span>
-<span class="o">Type yes to confirm: </span><span class="a">yes</span>
-<span class="o">New master password: ••••••••</span>
-<span class="o">Confirm new master password: ••••••••</span>
-<span class="o">All secrets deleted. New master password set.</span></pre>
-          </div>
-          <p style="font-size:.85rem;color:var(--dimmer);margin-top:.5rem">
-            Secrets encrypted with the old key are unrecoverable. The file is wiped and you start fresh.
-          </p>
-        </div>
-
-      </div>
     </div>
   </section>
 
-  <!-- ── pcli ──────────────────────────────────────────────────── -->
+  <!-- ── pcli ──────────────────────────────────────────────── -->
   <section id="pcli">
     <div class="container">
       <h2><span class="hl">pcli</span> — interactive popular shell</h2>
@@ -498,7 +387,7 @@
     </div>
   </section>
 
-  <!-- ── Storage ───────────────────────────────────────────────── -->
+  <!-- ── Storage ───────────────────────────────────────────── -->
   <section id="storage">
     <div class="container">
       <h2><span class="hl">Storage</span></h2>
@@ -527,7 +416,57 @@
     </div>
   </section>
 
-  <!-- ── Other shells ──────────────────────────────────────────── -->
+  <!-- ── Playground ────────────────────────────────────────── -->
+  <section id="playground">
+    <div class="container">
+      <h2><span class="hl">Try it</span> — command playground</h2>
+      <p>Select a command, fill in the arguments, and run it to see realistic simulated output.</p>
+
+      <div class="playground-wrap">
+
+        <div class="playground-controls">
+          <div class="pg-field">
+            <label class="pg-label" for="pg-select">Command</label>
+            <select class="pg-select" id="pg-select" onchange="pgSelectCommand(this.value)">
+              <option value="padd">padd — save a command</option>
+              <option value="paddh">paddh — save from history</option>
+              <option value="p">p — run a command</option>
+              <option value="pls">pls — list commands</option>
+              <option value="premove">premove — delete a command</option>
+              <option value="pedit">pedit — edit a command</option>
+              <option value="pexport">pexport — export commands</option>
+              <option value="pimport">pimport — import commands</option>
+              <option value="psecret">psecret — store a secret</option>
+              <option value="plock">plock — clear cached password</option>
+              <option value="pupdate">pupdate — update popular.zsh</option>
+              <option value="psecret-reset">psecret-reset — change master password</option>
+              <option value="psecret-migrate">psecret-migrate — migrate v1 secrets</option>
+              <option value="pcli">pcli — interactive sub-shell</option>
+            </select>
+          </div>
+
+          <div id="pg-args"></div>
+
+          <button class="pg-run" id="pg-run-btn" onclick="pgRun()">Run ›</button>
+        </div>
+
+        <div class="playground-terminal">
+          <div class="terminal-bar">
+            <span class="dot dot-r"></span>
+            <span class="dot dot-y"></span>
+            <span class="dot dot-g"></span>
+            <span>popular.zsh playground</span>
+          </div>
+          <div id="pg-output">
+            <p class="pg-placeholder">← Select a command and click Run.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Other shells ──────────────────────────────────────── -->
   <section id="other-shells">
     <div class="container">
       <h2><span class="hl">Other shells</span></h2>
@@ -607,7 +546,7 @@
     </div>
   </section>
 
-  <!-- ── Footer ────────────────────────────────────────────────── -->
+  <!-- ── Footer ────────────────────────────────────────────── -->
   <footer>
     <div class="container">
       <div class="links">
