@@ -1,11 +1,16 @@
 # Command Reference
 
+Every command accepts `--help` or `-h` for a formatted in-terminal reference.
+
+---
+
 ## `padd`
 
 Save a command:
 
 ```zsh
 padd gs git status
+padd serve 'python3 -m http.server [[port]]'
 ```
 
 ## `paddh`
@@ -15,7 +20,7 @@ Save a command line from zsh history by event number (the number shown in the fi
 ```zsh
 paddh 233           # default name h233
 paddh 233 gs        # save event 233 as gs
-paddh -1            # previous command relative to this line (default name h-1)
+paddh -1            # previous command (default name h-1)
 ```
 
 ## `p`
@@ -97,14 +102,25 @@ pimport -r -R owner/repo                     # replace store with remote pack
 Store a value for a `<<key>>` placeholder (stdin or hidden prompt). Values are **encrypted at rest** with AES-256-CBC (openssl, PBKDF2) under a master password you set the first time you use secrets in a session.
 
 ```zsh
-print -r 'value' | psecret mycmd api-token   # only for bookmark mycmd
-print -r 'value' | psecret -g api-token      # global (preferred when running p)
+print -r 'value' | psecret mycmd api-token   # per-command secret
+print -r 'value' | psecret -g api-token      # global (checked first when running p)
 psecret -g username                          # prompt if stdin is a TTY
 ```
 
 On first use in a session, you will be prompted for your master password. The password is cached in memory for the rest of that shell session and is never written to disk. Run `plock` to clear it.
 
 Keys must match letters, digits, `_`, or `-`. The reserved bucket name `__global__` is internal; use `-g` / `--global` instead of typing it as a command name.
+
+## `psecret-reset`
+
+Change the master password for all stored secrets, or wipe the entire secrets file.
+
+```zsh
+psecret-reset          # re-encrypt every secret under a new master password
+psecret-reset --wipe   # delete the secrets file entirely (irreversible)
+```
+
+You will be prompted for the current master password before any changes are made. A `.bak` copy is kept when re-keying until you remove it. Use `plock` after resetting to clear the old cached password.
 
 ## `plock`
 
@@ -128,46 +144,50 @@ You will be prompted for your master password. Each value is re-encrypted and th
 
 ## `pedit`
 
-Edit the whole backing file (same `name|command` format as on disk), or edit **only one** bookmark’s command text in a scratch buffer:
+Edit the whole backing file (same `name|command` format as on disk), or edit **only one** bookmark's command text in a scratch buffer:
 
 ```zsh
 pedit              # opens ~/.popular_commands (or $POPULAR_COMMANDS_FILE)
-pedit serve        # opens just the saved command for “serve”
+pedit serve        # opens just the saved command for "serve"
 ```
 
 Uses **`$EDITOR`**, or **vim** if `EDITOR` is unset. If the editor exits non-zero, changes are not saved. Saving an empty buffer is rejected (use `premove` to delete).
 
 ## `pupdate`
 
-Re-download `popular.zsh`, `install.sh`, and every file under `lib/popular/` from GitHub into the same directory as your sourced `popular.zsh` (requires `curl` and the usual `lib/popular/` layout).
+Re-download `popular.zsh`, `install.sh`, and every file under `lib/popular/` from GitHub into the same directory as your sourced `popular.zsh` (requires `curl` and the usual `lib/popular/` layout). All updated functions are reloaded automatically — no manual `source` needed.
 
 ```zsh
 pupdate
+pupdate --dir ~/.config/popular-zsh   # override install directory
 ```
 
-Uses **`POPULAR_REPO_BASE`** if set (default: `https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main`). Reload after updating:
+| Flag | Description |
+|------|-------------|
+| `-d`, `--dir <path>` | Use this directory instead of the auto-detected install path |
 
-```zsh
-source ~/.popular-zsh/popular.zsh
-```
+If no `--dir` is given and `POPULAR_INSTALL_DIR` is not set, `pupdate` prompts interactively for the path (press Enter to accept the detected default).
+
+Uses **`POPULAR_REPO_BASE`** if set (default: `https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main`).
 
 ## `pcli`
 
-Drop into a sub-shell where your saved command names work **directly**—no `p` prefix needed. Your normal `PS1` is untouched; a `[p]` badge appears on the right so you always know you're inside the popular session. The following short aliases are active inside `pcli`:
+Drop into a sub-shell where your saved command names work **directly** — no `p` prefix needed. Your normal `PS1` is untouched; a `[p]` badge appears on the right so you always know you're inside the popular session. The following short aliases are active inside `pcli`:
 
-| Alias    | Full command |
-|----------|-------------|
-| `add`    | `padd`      |
-| `addh`   | `paddh`     |
-| `list`   | `pls`       |
-| `remove` | `premove`   |
-| `edit`   | `pedit`     |
-| `update` | `pupdate`   |
-| `secret` | `psecret`   |
-| `save`   | `pexport`   |
-| `load`   | `pimport`   |
-| `help`   | `phelp`     |
-| `bye`    | `exit`      |
+| Alias | Full command |
+|-------|-------------|
+| `add` | `padd` |
+| `addh` | `paddh` |
+| `list` | `pls` |
+| `remove` | `premove` |
+| `edit` | `pedit` |
+| `update` | `pupdate` |
+| `secret` | `psecret` |
+| `secret-reset` | `psecret-reset` |
+| `save` | `pexport` |
+| `load` | `pimport` |
+| `help` | `phelp` |
+| `bye` | `exit` |
 
 Tab completion is fully available inside the sub-shell.
 

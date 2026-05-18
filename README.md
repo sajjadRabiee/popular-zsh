@@ -50,6 +50,7 @@ pimport -R sajjadRabiee/popular-zsh-pack
 | `pexport [file\|-]` | Export commands to a file or stdout — never includes secrets |
 | `pimport [-r] [-R] <file\|repo>` | Import / merge commands from a file or GitHub repo |
 | `psecret [-g] <key>` | Store a secret (encrypted at rest) |
+| `psecret-reset` | Re-key all secrets under a new master password, or wipe them |
 | `plock` | Clear cached master password from the current session |
 | `psecret-migrate` | Upgrade a v1 plain-text secrets file to v2 encrypted format |
 | `pedit [name]` | Edit the whole store or one command in `$EDITOR` |
@@ -82,6 +83,17 @@ export POPULAR_SECRETS_FILE=/path/to/secrets
 ## Security
 
 `p` runs commands with `eval` after template expansion — treat your commands file and `pimport` sources like code you trust. Secrets use AES-256-CBC under a session-cached master password; run `plock` when stepping away. See [SECURITY.md](SECURITY.md) for the full threat model and vulnerability reporting.
+
+## Why popular.zsh?
+
+There are bigger tools for shell history, snippets, and command search. popular.zsh is for when you want something much smaller:
+
+- a plain text file you can read, copy, and version
+- fast repeatable commands with lightweight templates
+- optional secrets beside the store — never leaked in exports
+- community packs: `pimport -R owner/repo` bootstraps a team in seconds
+
+That simplicity is the feature.
 
 ## Contributing
 

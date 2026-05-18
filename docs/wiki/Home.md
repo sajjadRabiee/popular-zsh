@@ -23,7 +23,6 @@ pls                   # browse all saved commands
 | [Examples](Examples.md) | Real-world patterns: git, docker, secrets, history, packs |
 | [Command Packs](Command-Packs.md) | Publish and import community packs with `pimport -R` |
 | [Other Shells](Other-Shells.md) | Bash, fish, nushell wrappers and troubleshooting |
-| [Why popular.zsh?](Why-popular.zsh.md) | Design philosophy |
 
 ## Project links
 
