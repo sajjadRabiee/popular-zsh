@@ -56,6 +56,7 @@
       <span class="badge badge-green">pupdate</span>
       <span class="badge badge-purple">pcli</span>
       <span class="badge badge-red">plock</span>
+      <span class="badge badge-orange">psecret-reset</span>
     </div>
   </header>
 
@@ -117,6 +118,14 @@
         <div class="feature-card">
           <div class="cmd" style="color:var(--orange)">psecret-migrate</div>
           <p>Upgrade a v1 plain-text secrets file to the v2 AES-256-CBC encrypted format in one command.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="cmd" style="color:var(--orange)">psecret-reset</div>
+          <p>
+            Change your master password and re-encrypt every secret in place. If the old password
+            is lost, wipes all secrets and starts fresh — no way to recover without the original key.
+          </p>
         </div>
 
         <div class="feature-card">
@@ -333,6 +342,12 @@
           <p>Already have secrets? Run <code class="mono" style="font-size:.82rem">psecret-migrate</code> once to re-encrypt the file under AES-256-CBC. A <code class="mono" style="font-size:.82rem">.bak</code> is kept until you remove it.</p>
         </div>
 
+        <div class="enc-step">
+          <div class="step-num">Password change</div>
+          <div class="step-title">psecret-reset: rekey or wipe</div>
+          <p>Run <code class="mono" style="font-size:.82rem">psecret-reset</code> to change your master password. If you still have the old one, all secrets are re-encrypted in place. If the old password is lost, secrets are wiped and you start fresh.</p>
+        </div>
+
       </div>
 
       <h3>Secrets workflow</h3>
@@ -378,6 +393,59 @@
 <span class="c"># Remove the backup once you have verified the migration</span>
 <span class="p">$</span> <span class="a">rm ~/.popular_commands.secrets.bak</span></pre>
       </div>
+
+      <h3>Changing your master password (<code class="mono" style="font-size:.85rem">psecret-reset</code>)</h3>
+      <p>
+        <code class="mono" style="font-size:.85rem">psecret-reset</code> first asks whether you still
+        have your old password. The two paths are fundamentally different:
+      </p>
+
+      <div class="two-col" style="margin-top:1rem">
+
+        <div>
+          <h3 style="font-size:.9rem;margin-bottom:.5rem">Still have the old password — rekey</h3>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span>zsh</span>
+            </div>
+            <pre><span class="p">$</span> <span class="km">psecret-reset</span>
+<span class="o">Do you still have your old master password? [y/N] </span><span class="a">y</span>
+<span class="o">Old master password: ••••••••</span>
+<span class="o">New master password: ••••••••</span>
+<span class="o">Confirm new master password: ••••••••</span>
+<span class="o">Re-encrypted 5 secret(s). New master password set.</span></pre>
+          </div>
+          <p style="font-size:.85rem;color:var(--dimmer);margin-top:.5rem">
+            Verifies the old password, then decrypts every secret and re-encrypts with the new one. Nothing is lost.
+          </p>
+        </div>
+
+        <div>
+          <h3 style="font-size:.9rem;margin-bottom:.5rem">Lost the old password — wipe and restart</h3>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span>zsh</span>
+            </div>
+            <pre><span class="p">$</span> <span class="km">psecret-reset</span>
+<span class="o">Do you still have your old master password? [y/N] </span><span class="a">n</span>
+<span class="o">WARNING: ALL encrypted secrets will be permanently deleted.</span>
+<span class="o">Type yes to confirm: </span><span class="a">yes</span>
+<span class="o">New master password: ••••••••</span>
+<span class="o">Confirm new master password: ••••••••</span>
+<span class="o">All secrets deleted. New master password set.</span></pre>
+          </div>
+          <p style="font-size:.85rem;color:var(--dimmer);margin-top:.5rem">
+            Secrets encrypted with the old key are unrecoverable. The file is wiped and you start fresh.
+          </p>
+        </div>
+
+      </div>
     </div>
   </section>
 
@@ -421,6 +489,7 @@
         <div class="alias-pair"><span class="from">edit</span><span class="arr">→</span><span class="to">pedit</span></div>
         <div class="alias-pair"><span class="from">update</span><span class="arr">→</span><span class="to">pupdate</span></div>
         <div class="alias-pair"><span class="from">secret</span><span class="arr">→</span><span class="to">psecret</span></div>
+        <div class="alias-pair"><span class="from">secret-reset</span><span class="arr">→</span><span class="to">psecret-reset</span></div>
         <div class="alias-pair"><span class="from">save</span><span class="arr">→</span><span class="to">pexport</span></div>
         <div class="alias-pair"><span class="from">load</span><span class="arr">→</span><span class="to">pimport</span></div>
         <div class="alias-pair"><span class="from">help</span><span class="arr">→</span><span class="to">phelp</span></div>

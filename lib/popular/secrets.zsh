@@ -381,6 +381,147 @@ psecret-migrate() {
 }
 
 # ---------------------------------------------------------------------------
+# psecret-reset: change master password (rekey) or wipe secrets when lost
+# ---------------------------------------------------------------------------
+
+psecret-reset() {
+  _popular_ensure_secrets_file
+
+  if ! command -v openssl &>/dev/null; then
+    _popular_warn "psecret-reset: openssl not found — cannot use encryption"
+    return 1
+  fi
+
+  print -r ""
+  print -rn "${fg[cyan]}Do you still have your old master password?${reset_color} ${fg[white]}[y/N]${reset_color} "
+  local have_old
+  read -r have_old </dev/tty
+  print -r ""
+
+  case "${${have_old:-n}:l}" in
+
+    y | yes)
+      # ── rekey: decrypt with old password, re-encrypt with new ──────────────
+
+      local saved_key="$_POPULAR_MASTER_KEY"
+      local old_key pass1 pass2
+      read -rs "?Old master password: " old_key </dev/tty
+      print >/dev/tty
+
+      if [[ -z "$old_key" ]]; then
+        _popular_warn "psecret-reset: empty password; aborted."
+        return 1
+      fi
+
+      # Verify old password by calling openssl directly with the key as an
+      # explicit argument — no dependency on _POPULAR_MASTER_KEY in a subshell.
+      local first_enc verify_out
+      first_enc=$(awk -F'\t' 'NR>1 && NF>=3 && $3!="" { print $3; exit }' "$POPULAR_SECRETS_FILE" 2>/dev/null)
+      if [[ -n "$first_enc" ]]; then
+        verify_out=$(printf '%s\n' "$first_enc" | \
+          env POPULAR_ENC_KEY="$old_key" \
+          openssl enc -d -aes-256-cbc -pbkdf2 -a -pass env:POPULAR_ENC_KEY 2>/dev/null)
+        if [[ $? -ne 0 ]] || [[ "$verify_out" != "${_POPULAR_ENC_PREFIX}"* ]]; then
+          _popular_warn "psecret-reset: old password is incorrect."
+          return 1
+        fi
+      fi
+
+      read -rs "?New master password: " pass1 </dev/tty
+      print >/dev/tty
+      read -rs "?Confirm new master password: " pass2 </dev/tty
+      print >/dev/tty
+
+      if [[ -z "$pass1" ]]; then
+        _POPULAR_MASTER_KEY="$saved_key"
+        _popular_warn "psecret-reset: empty password; aborted."
+        return 1
+      fi
+      if [[ "$pass1" != "$pass2" ]]; then
+        _POPULAR_MASTER_KEY="$saved_key"
+        _popular_warn "psecret-reset: passwords do not match; aborted."
+        return 1
+      fi
+
+      # Phase 1 — decrypt all entries with old key
+      _POPULAR_MASTER_KEY="$old_key"
+      local -a entries=()
+      local name_f key_f enc_f plain_f
+      while IFS=$'\t' read -r name_f key_f enc_f || [[ -n "$name_f" ]]; do
+        [[ -z "$name_f" || "$name_f" == '#'* ]] && continue
+        [[ -n "$name_f" && -n "$key_f" && -n "$enc_f" ]] || continue
+        plain_f=$(_popular_decrypt_value "$enc_f") || {
+          _popular_warn "psecret-reset: could not decrypt ${name_f}/${key_f} — skipped"
+          continue
+        }
+        entries+=("$name_f"$'\t'"$key_f"$'\t'"$plain_f")
+      done < "$POPULAR_SECRETS_FILE"
+
+      # Phase 2 — re-encrypt with new key
+      _POPULAR_MASTER_KEY="$pass1"
+      print -- "$_POPULAR_SECRETS_HEADER" > "$POPULAR_SECRETS_FILE"
+      chmod 600 "$POPULAR_SECRETS_FILE" 2>/dev/null
+
+      local -i count=0
+      local entry rest new_enc
+      for entry in "${entries[@]}"; do
+        name_f="${entry%%$'\t'*}"
+        rest="${entry#*$'\t'}"
+        key_f="${rest%%$'\t'*}"
+        plain_f="${rest#*$'\t'}"
+        new_enc=$(_popular_encrypt_value "$plain_f") || {
+          _popular_warn "psecret-reset: encryption failed for ${name_f}/${key_f} — skipped"
+          continue
+        }
+        print -r -- "$name_f"$'\t'"$key_f"$'\t'"$new_enc" >> "$POPULAR_SECRETS_FILE"
+        (( count++ ))
+      done
+
+      _popular_info "Re-encrypted ${count} secret(s). New master password set for this session."
+      ;;
+
+    *)
+      # ── lost password: wipe all secrets and start fresh ────────────────────
+
+      _popular_warn "psecret-reset: ALL encrypted secrets will be permanently deleted."
+      _popular_warn "psecret-reset: They cannot be recovered without the old password."
+      print -r ""
+      print -rn "${fg[yellow]}Type ${fg[white]}yes${reset_color}${fg[yellow]} to confirm: ${reset_color}"
+      local ans
+      read -r ans </dev/tty
+      print -r ""
+      if [[ "$ans" != yes ]]; then
+        _popular_info "psecret-reset: aborted."
+        return 1
+      fi
+
+      local pass1 pass2
+      read -rs "?New master password: " pass1 </dev/tty
+      print >/dev/tty
+      read -rs "?Confirm new master password: " pass2 </dev/tty
+      print >/dev/tty
+
+      if [[ -z "$pass1" ]]; then
+        _popular_warn "psecret-reset: empty password; aborted."
+        return 1
+      fi
+      if [[ "$pass1" != "$pass2" ]]; then
+        _popular_warn "psecret-reset: passwords do not match; aborted."
+        return 1
+      fi
+
+      print -- "$_POPULAR_SECRETS_HEADER" > "$POPULAR_SECRETS_FILE"
+      chmod 600 "$POPULAR_SECRETS_FILE" 2>/dev/null
+
+      _POPULAR_MASTER_KEY="$pass1"
+      _popular_info "All secrets deleted. New master password set for this session."
+      _popular_info "Re-add secrets with: psecret -g <key>  or  psecret <command> <key>"
+      ;;
+
+  esac
+}
+
+# ---------------------------------------------------------------------------
 # psecret command
 # ---------------------------------------------------------------------------
 

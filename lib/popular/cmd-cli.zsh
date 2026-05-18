@@ -32,6 +32,7 @@ alias remove='premove'
 alias edit='pedit'
 alias update='pupdate'
 alias secret='psecret'
+alias secret-reset='psecret-reset'
 alias save='pexport'
 alias load='pimport'
 alias help='phelp'
@@ -72,7 +73,7 @@ compdef _pcli_complete_remove remove
 compdef _pcli_complete_edit   edit
 compdef _pcli_complete_secret secret
 compdef _files  save load
-compdef _nothing add addh update help bye
+compdef _nothing add addh update help bye secret-reset
 
 # ── first-word completion: offer saved command names in command position ──────
 # When the user starts typing a saved name as the first word and hits Tab,

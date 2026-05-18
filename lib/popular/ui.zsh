@@ -117,7 +117,7 @@ _popular_usage() {
     done
   else
     inner_plain="  ${title_plain}"
-    inner_colored="  ${fg[cyan]}popular.zsh${reset_color}  ${fg[white]}· bookmark and run shell commands${reset_color}"
+    inner_colored="  ${fg[cyan]}popular.zsh${reset_color} ${fg[white]}· bookmark and run shell commands${reset_color}"
     _popular_box_inner_line "$inner_plain" "$inner_colored"
   fi
   _popular_usage_box_bot
@@ -141,6 +141,7 @@ _popular_usage() {
   _popular_usage_row "pcli" "Drop into a sub-shell with saved commands available directly by name (no \`p\` prefix); type \`bye\` to exit"
   _popular_usage_row "plock" "Lock secrets (clear cached master password for this session)"
   _popular_usage_row "psecret-migrate" "Encrypt an existing plain-text secrets file with AES-256 (run once after upgrading)"
+  _popular_usage_row "psecret-reset" "Change master password: re-encrypts all secrets if old password known; wipes all secrets if lost"
   _popular_usage_row "phelp" "Show this help"
   _popular_usage_sep
   inner_plain='  Examples'
