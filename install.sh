@@ -1,5 +1,11 @@
 #!/usr/bin/env zsh
 
+# Guard: must run under zsh, not sh/bash.
+if [ -z "${ZSH_VERSION-}" ]; then
+  echo "error: install.sh requires zsh — run:  zsh ./install.sh" >&2
+  exit 1
+fi
+
 set -euo pipefail
 
 REPO_BASE="${POPULAR_REPO_BASE:-https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main}"
@@ -7,7 +13,8 @@ INSTALL_DIR="${POPULAR_INSTALL_DIR:-$HOME/.popular-zsh}"
 TARGET_FILE="$INSTALL_DIR/popular.zsh"
 
 # Detect the user's default shell; POPULAR_SHELL overrides auto-detection.
-POPULAR_SHELL_NAME="${POPULAR_SHELL:-${SHELL:t}}"
+# ${SHELL##*/} is POSIX-compatible basename; avoids zsh-only :t modifier.
+POPULAR_SHELL_NAME="${POPULAR_SHELL:-${SHELL##*/}}"
 
 typeset -a POPULAR_MODULE_PATHS=(
   popular.zsh
