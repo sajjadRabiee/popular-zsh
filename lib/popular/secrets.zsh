@@ -19,6 +19,7 @@ _popular_require_key() {
 }
 
 plock() {
+  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_plock; return 0; }
   _POPULAR_MASTER_KEY=''
   _popular_info "Secrets locked. Password will be prompted on next use."
 }
@@ -330,6 +331,7 @@ _popular_collect_all_secret_keys() {
 # ---------------------------------------------------------------------------
 
 psecret-migrate() {
+  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_psecret_migrate; return 0; }
   if [[ ! -f "$POPULAR_SECRETS_FILE" ]]; then
     _popular_warn "psecret-migrate: no secrets file at $POPULAR_SECRETS_FILE"
     return 1
@@ -385,6 +387,7 @@ psecret-migrate() {
 # ---------------------------------------------------------------------------
 
 psecret-reset() {
+  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_psecret_reset; return 0; }
   _popular_ensure_secrets_file
 
   if ! command -v openssl &>/dev/null; then
@@ -526,15 +529,14 @@ psecret-reset() {
 # ---------------------------------------------------------------------------
 
 psecret() {
+  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_psecret; return 0; }
   local name="" sk="" val global=0
 
   while [[ "$1" == -* ]]; do
     case "$1" in
       -g | --global) global=1 ;;
       *)
-        _popular_warn "psecret: unknown option: $1"
-        _popular_warn "psecret: usage: psecret [-g|--global] <secret-key>"
-        _popular_warn "psecret:        psecret <command-name> <secret-key>"
+        _popular_warn "psecret: unknown option: $1"$'\n'"usage: psecret [-g|--global] <key>  or  psecret <name> <key>"$'\n'"run 'psecret --help' for details"
         return 1
         ;;
     esac
@@ -550,9 +552,7 @@ psecret() {
   fi
 
   if [[ -z "$name" || -z "$sk" ]]; then
-    _popular_warn "psecret: usage: psecret [-g|--global] <secret-key>   # global (preferred when running commands)"
-    _popular_warn "psecret:        psecret <command-name> <secret-key>   # fallback when no global value"
-    _popular_warn "psecret: reads the value from stdin if piped; otherwise prompts (hidden)"
+    _popular_warn "psecret: usage: psecret [-g|--global] <key>  or  psecret <name> <key>"$'\n'"value read from stdin if piped; otherwise prompted (hidden)"$'\n'"run 'psecret --help' for details"
     return 1
   fi
 

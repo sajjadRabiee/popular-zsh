@@ -15,10 +15,12 @@ typeset -ga _popular_upstream_paths=(
   lib/popular/cmd-edit.zsh
   lib/popular/cmd-update.zsh
   lib/popular/cmd-cli.zsh
+  lib/popular/cmd-help.zsh
   lib/popular/completion.zsh
 )
 
 pupdate() {
+  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_pupdate; return 0; }
   local base="${POPULAR_REPO_BASE:-https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main}"
   local root="$_POPULAR_INSTALL_DIR"
   local rel tmp

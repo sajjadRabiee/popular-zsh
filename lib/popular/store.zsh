@@ -72,17 +72,9 @@ _popular_get_history_command() {
   print -r -- "$line"
 }
 
-_popular_info() {
-  print -r -- "${fg[green]}$1${reset_color}"
-}
-
-_popular_warn() {
-  print -u2 -r -- "${fg[red]}$1${reset_color}"
-}
-
-_popular_note() {
-  print -r -- "${fg[white]}$1${reset_color}"
-}
+_popular_info() { _popular_msg_box green  '✓' "$1" }
+_popular_warn() { _popular_msg_box red    '✗' "$1" >&2 }
+_popular_note() { _popular_msg_box yellow '·' "$1" }
 
 _popular_names() {
   _popular_ensure_file

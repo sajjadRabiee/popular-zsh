@@ -1,13 +1,14 @@
 # lib/popular/cmd-run.zsh
 
 p() {
+  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_p; return 0; }
   local name="$1"
   local command rendered
 
   shift || true
 
   if [[ -z "$name" ]]; then
-    _popular_warn "p: usage: p <name>"
+    _popular_warn "p: usage: p <name> [args…]"$'\n'"run 'p --help' for details"
     return 1
   fi
 

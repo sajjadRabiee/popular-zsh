@@ -1,6 +1,7 @@
 # lib/popular/cmd-list.zsh
 
 pls() {
+  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_pls; return 0; }
   emulate -L zsh -o no_xtrace 2>/dev/null || setopt local_options no_xtrace 2>/dev/null
   local count max_name line name command preview name_pad empty_pad
   local first gap needle nlow ilow

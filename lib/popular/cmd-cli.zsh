@@ -4,6 +4,7 @@
 # you're inside the popular session. Type any saved command name directly to run it.
 
 pcli() {
+  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_pcli; return 0; }
   local _dir
   _dir=$(mktemp -d "${TMPDIR:-/tmp}/pcli.XXXXXX") || return 1
 

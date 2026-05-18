@@ -1,10 +1,11 @@
 # lib/popular/cmd-io.zsh
 
 premove() {
+  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_premove; return 0; }
   local name="$1"
 
   if [[ -z "$name" ]]; then
-    _popular_warn "premove: usage: premove <name>"
+    _popular_warn "premove: usage: premove <name>"$'\n'"run 'premove --help' for details"
     return 1
   fi
 
@@ -16,6 +17,7 @@ premove() {
 }
 
 pexport() {
+  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_pexport; return 0; }
   local dest="$1"
 
   _popular_ensure_file
@@ -72,14 +74,14 @@ _popular_import_merge() {
 }
 
 pimport() {
+  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_pimport; return 0; }
   local replace=0 src
 
   while [[ "$1" == -* ]]; do
     case "$1" in
       -r | --replace) replace=1 ;;
       *)
-        _popular_warn "pimport: unknown option: $1"
-        _popular_warn "pimport: usage: pimport [-r|--replace] <file>"
+        _popular_warn "pimport: unknown option: $1"$'\n'"usage: pimport [-r|--replace] <file>"$'\n'"run 'pimport --help' for details"
         return 1
         ;;
     esac
@@ -88,7 +90,7 @@ pimport() {
 
   src="$1"
   if [[ -z "$src" ]]; then
-    _popular_warn "pimport: usage: pimport [-r|--replace] <file>"
+    _popular_warn "pimport: usage: pimport [-r|--replace] <file>"$'\n'"run 'pimport --help' for details"
     return 1
   fi
 

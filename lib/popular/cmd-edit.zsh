@@ -1,6 +1,7 @@
 # lib/popular/cmd-edit.zsh
 
 pedit() {
+  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_pedit; return 0; }
   local name="$1"
   local cmd tmp ed st
 

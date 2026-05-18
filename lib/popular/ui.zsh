@@ -165,3 +165,61 @@ _popular_usage() {
 phelp() {
   _popular_usage
 }
+
+# ---------------------------------------------------------------------------
+# _popular_msg_box — bordered message used by _popular_info / warn / note
+# color: red | green | yellow | white | blue
+# icon:  single terminal-column character
+# msg:   text, may contain literal newlines for multi-line output
+# ---------------------------------------------------------------------------
+
+_popular_msg_box() {
+  local color="$1" icon="$2" msg="$3"
+  local -a lines=("${(@f)msg}")
+  print -r -- "${fg[$color]}╭${_POPULAR_RULE78}╮${reset_color}"
+  local first=1 line plain colored
+  local -i pad
+  for line in "${lines[@]}"; do
+    [[ -z "$line" ]] && continue
+    if (( first )); then
+      plain="  ${icon}  ${line}"
+      colored="  ${fg[$color]}${icon}${reset_color}  ${line}"
+      first=0
+    else
+      plain="     ${line}"
+      colored="     ${line}"
+    fi
+    pad=$(( _POPULAR_BOX_INNER - ${#plain} ))
+    (( pad < 0 )) && pad=0
+    print -rn -- "${fg[$color]}│${reset_color}${colored}"
+    printf '%*s' $pad ''
+    print -r -- "${fg[$color]}│${reset_color}"
+  done
+  print -r -- "${fg[$color]}╰${_POPULAR_RULE78}╯${reset_color}"
+}
+
+# ---------------------------------------------------------------------------
+# Per-command --help box helpers (reuse existing box primitives)
+# ---------------------------------------------------------------------------
+
+_popular_help_open() {
+  local cmd="$1" desc="$2"
+  print
+  _popular_usage_box_top
+  local plain="  ${cmd} · ${desc}"
+  local colored="  ${fg[cyan]}${cmd}${reset_color} ${fg[white]}· ${desc}${reset_color}"
+  _popular_box_inner_line "$plain" "$colored"
+  _popular_usage_sep
+}
+
+_popular_help_examples() {
+  _popular_usage_sep
+  local ip="  Examples" ic="  ${fg[yellow]}Examples${reset_color}"
+  _popular_box_inner_line "$ip" "$ic"
+  _popular_usage_sep
+}
+
+_popular_help_close() {
+  _popular_usage_box_bot
+  print
+}
