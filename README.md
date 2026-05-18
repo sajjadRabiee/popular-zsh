@@ -21,7 +21,7 @@ It gives you:
 - `p` to run them (templates plus `<<secret>>` substitution)
 - `pls` to list them in a clean view
 - `premove` to remove them (and their per-command secrets)
-- `pexport` / `pimport` to back up, share, or merge your saved commands (`pexport` never includes secrets)
+- `pexport` / `pimport` to back up, share, or merge your saved commands (`pexport` never includes secrets); import directly from a GitHub repo with `pimport -R owner/repo`
 - `psecret` / `psecret -g` to store sensitive values encrypted in a separate secrets file (AES-256-CBC, prompted master password)
 - `plock` to clear the cached master password from the current shell session
 - `psecret-migrate` to upgrade a v1 plain-text secrets file to the v2 encrypted format
@@ -80,7 +80,7 @@ p <name> [options...]
 pls [needle…]
 premove <name>
 pexport [file|-]
-pimport [-r|--replace] <file>
+pimport [-r|--replace] [-R|--remote] <file|repo>
 psecret [-g|--global] <secret-key>
 psecret <command-name> <secret-key>
 pedit [name]
@@ -133,6 +133,15 @@ Export and import the same plain-text store (`name|command` lines):
 pexport ~/popular-backup.txt
 pimport ~/popular-backup.txt
 pimport -r ~/popular-backup.txt   # replace entire store
+```
+
+Import directly from a GitHub repo (no download needed):
+
+```zsh
+pimport -R sajjadRabiee/popular-zsh-pack   # official 1000-command starter pack
+pimport -R owner/repo                       # any popular-pack repo
+pimport -R owner/repo:branch               # specific branch
+pimport -r -R owner/repo                   # replace store with remote pack
 ```
 
 On a TTY, `pimport` can ask whether new secrets should be saved **globally** (`psecret -g`) or **per command**, then prompts accordingly.
@@ -296,6 +305,18 @@ export POPULAR_COMMANDS_FILE="$HOME/.popular_commands"
 ```
 
 See [`docs/wiki/Other-Shells.md`](docs/wiki/Other-Shells.md) for more detail and troubleshooting tips.
+
+## Command Packs
+
+A **popular-pack** is a GitHub repo with a `commands.pop` file at its root — the same `name|command` format as `pexport` output. The [official pack](https://github.com/sajjadRabiee/popular-zsh-pack) ships 1 000+ commands across 20 categories:
+
+```zsh
+pimport -R sajjadRabiee/popular-zsh-pack
+```
+
+To publish your own pack: create a repo, add `commands.pop`, share `pimport -R owner/repo`.
+
+The format rules and all import shorthands are documented in [`docs/wiki/Command-Packs.md`](docs/wiki/Command-Packs.md).
 
 ## Contributing
 

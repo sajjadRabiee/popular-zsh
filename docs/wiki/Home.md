@@ -11,7 +11,7 @@ Welcome to the wiki for `popular.zsh`.
 - `p` to run commands (with `{{}}`, `[[]]`, and `<< >>` substitution)
 - `pls` to browse saved commands (with template and secret hints)
 - `premove` to remove entries (and per-command secret rows)
-- `pexport` and `pimport` to export or merge saved commands (`pexport` never exports secrets)
+- `pexport` and `pimport` to export or merge saved commands (`pexport` never exports secrets); import directly from a GitHub repo with `pimport -R owner/repo`
 - `psecret` / `psecret --global` to fill secret placeholders — values are encrypted at rest with AES-256-CBC
 - `plock` to clear the cached master password from the current shell session
 - `psecret-migrate` to upgrade a v1 plain-text secrets file to the v2 encrypted format
@@ -56,5 +56,6 @@ p serve --port=8000
 - [Command Reference](Command-Reference.md)
 - [Templates](Templates.md)
 - [Examples](Examples.md)
+- [Command Packs](Command-Packs.md)
 - [Other Shells](Other-Shells.md)
 - [Why popular.zsh?](Why-popular.zsh.md)

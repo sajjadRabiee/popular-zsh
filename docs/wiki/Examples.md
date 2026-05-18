@@ -82,6 +82,38 @@ pimport -r ~/Desktop/popular-commands.backup
 
 After import, if the file contains `<<secrets>>`, the shell may ask **global vs per-command** secret setup (TTY only), then guide you through `psecret`.
 
+## Importing a command pack (`pimport -R`)
+
+Pull 1 000+ ready-made commands from the official pack in one line:
+
+```zsh
+pimport -R sajjadRabiee/popular-zsh-pack
+```
+
+Import from any GitHub repo, branch, or raw URL:
+
+```zsh
+pimport -R owner/repo                        # main branch, commands.pop
+pimport -R owner/repo:dev                    # specific branch
+pimport -R owner/repo/extras/work.pop        # custom file path
+pimport -R https://example.com/my-cmds.pop   # any raw URL
+```
+
+Replace your entire store with a pack:
+
+```zsh
+pimport -r -R owner/repo
+```
+
+Create your own pack by exporting your store and committing it:
+
+```zsh
+pexport > commands.pop
+# review, strip anything personal, then push to GitHub
+```
+
+See [Command Packs](Command-Packs.md) for the full standard.
+
 ## Interactive popular shell (`pcli`)
 
 Drop into a sub-shell where every saved command name works directly—no `p` prefix required. Your `PS1` stays intact; a `[p]` badge appears on the right so you always know you're inside the popular session.

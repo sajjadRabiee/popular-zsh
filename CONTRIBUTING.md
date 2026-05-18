@@ -48,7 +48,7 @@ There is no automated test harness yet. Before submitting a change, please smoke
 
 - Save and run: `padd`, `p`, `paddh` (interactive shell only).
 - List / edit / remove: `pls`, `pedit`, `premove`.
-- Import / export: `pexport`, `pimport`, `pimport -r` with a small fixture file.
+- Import / export: `pexport`, `pimport`, `pimport -r` with a small fixture file, and `pimport -R owner/repo` against a real or mock URL (set `POPULAR_REPO_BASE` to a local server to avoid network hits).
 - Secrets: `psecret`, `psecret -g`, then `p` on a command that uses `<<key>>`.
 - Completion: trigger tab completion for `p`, `pls`, `psecret`, etc., if you touch [`lib/popular/completion.zsh`](lib/popular/completion.zsh).
 - Sub-shell: run `pcli`, execute a saved command by name, use the short aliases (`list`, `add`, `bye`), and verify tab completion works inside the session.

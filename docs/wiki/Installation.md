@@ -87,3 +87,19 @@ export POPULAR_SECRETS_FILE=/path/to/your/secrets
 The command file is plain text (`name|command` per line). You can copy it, version it, or round-trip it with `pexport` and `pimport`. **`pexport` does not include the secrets file** — share exports that use `<<placeholders>>` safely after filling secrets only on machines that need them.
 
 Secret values are **encrypted at rest** with AES-256-CBC (openssl, PBKDF2). A master password is prompted on first use in each shell session and cached in memory. If you have an existing v1 plain-text secrets file, run `psecret-migrate` once to re-encrypt it.
+
+## Bootstrapping commands after install
+
+After installing, you can populate your store immediately from a [command pack](Command-Packs.md):
+
+```zsh
+pimport -R sajjadRabiee/popular-zsh-pack   # 1000+ everyday commands
+```
+
+Or restore from your own backup:
+
+```zsh
+pimport ~/popular-backup.txt
+```
+
+`curl` must be on your `PATH` for remote import.
