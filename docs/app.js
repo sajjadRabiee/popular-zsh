@@ -31,6 +31,16 @@ function copyInstall() {
   });
 }
 
+function copyPackImport() {
+  const text = document.getElementById('pack-import-cmd').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-pack-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
 /* ── Mobile menu ────────────────────────────────────────────────── */
 
 function toggleMenu() {

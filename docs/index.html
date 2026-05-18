@@ -42,6 +42,7 @@
         <li><a href="#pcli" onclick="closeMenu()">pcli</a></li>
         <li><a href="#playground" onclick="closeMenu()">Playground</a></li>
         <li><a href="#other-shells" onclick="closeMenu()">Other shells</a></li>
+        <li><a href="#packs" onclick="closeMenu()">Packs</a></li>
         <li><a href="https://github.com/sajjadRabiee/popular-zsh" target="_blank" rel="noopener">GitHub ↗</a></li>
       </ul>
       <div class="nav-right">
@@ -543,6 +544,86 @@
         </div>
       </div>
 
+    </div>
+  </section>
+
+  <!-- ── Command Packs ────────────────────────────────────── -->
+  <section id="packs">
+    <div class="container">
+      <h2><span class="hl">Command Packs</span></h2>
+      <p>
+        A <strong style="color:var(--text)">popular-pack</strong> is any GitHub repo with a
+        <code class="mono" style="font-size:.85rem">commands.pop</code> file in the standard
+        <code class="mono" style="font-size:.85rem">name|command</code> format.
+        Import any pack directly — no download, no copy-paste.
+      </p>
+
+      <div class="pack-card">
+        <div class="pack-card-header">
+          <div>
+            <div class="pack-name">sajjadRabiee / popular-zsh-pack</div>
+            <div class="pack-tagline">The official starter pack — 1 000 everyday shell commands</div>
+          </div>
+          <span class="badge badge-green">1 000 commands</span>
+        </div>
+
+        <div class="pack-cats">
+          <span class="pack-cat">git</span>
+          <span class="pack-cat">docker</span>
+          <span class="pack-cat">kubernetes</span>
+          <span class="pack-cat">aws</span>
+          <span class="pack-cat">terraform</span>
+          <span class="pack-cat">python</span>
+          <span class="pack-cat">node</span>
+          <span class="pack-cat">postgres</span>
+          <span class="pack-cat">redis</span>
+          <span class="pack-cat">security</span>
+          <span class="pack-cat">network</span>
+          <span class="pack-cat">system</span>
+          <span class="pack-cat">go</span>
+          <span class="pack-cat">rust</span>
+          <span class="pack-cat">helm</span>
+          <span class="pack-cat">ansible</span>
+          <span class="pack-cat">java</span>
+          <span class="pack-cat">macos</span>
+        </div>
+
+        <div class="terminal pack-preview">
+          <div class="terminal-bar">
+            <span class="dot dot-r"></span>
+            <span class="dot dot-y"></span>
+            <span class="dot dot-g"></span>
+            <span>preview — popular-zsh-pack</span>
+          </div>
+          <pre><span class="p">$</span> <span class="k">pls</span>
+<span class="kp">gs</span>          <span class="a">git status</span>
+<span class="ke">dps</span>         <span class="a">docker ps</span>
+<span class="kl">kgpa</span>        <span class="a">kubectl get pods -A</span>
+<span class="km">aws-ls</span>      <span class="a">aws s3 ls s3://[[bucket]]/</span>
+<span class="kc">tfinit</span>      <span class="a">terraform init</span>
+<span class="ks">psql-conn</span>   <span class="a">psql -h [[host]] -U [[user]] -d [[db]]</span>
+<span class="ku">redis-get</span>   <span class="a">redis-cli get [[key]]</span>
+<span class="kk">nmap-scan</span>   <span class="a">nmap -sV -sC -oN [[output]] [[target]]</span>
+<span class="q">  … and 992 more</span></pre>
+        </div>
+
+        <div class="pack-actions">
+          <div class="pack-import-wrap">
+            <code id="pack-import-cmd">pimport -R sajjadRabiee/popular-zsh-pack</code>
+            <button class="copy-btn" id="copy-pack-btn" onclick="copyPackImport()">Copy</button>
+          </div>
+          <a class="pack-gh-link" href="https://github.com/sajjadRabiee/popular-zsh-pack" target="_blank" rel="noopener">View on GitHub ↗</a>
+        </div>
+      </div>
+
+      <div class="pack-diy">
+        <p>
+          <strong style="color:var(--text)">Ship your own pack:</strong>
+          create a repo, add a <code class="mono" style="font-size:.85rem">commands.pop</code> file,
+          and share <code class="mono" style="font-size:.85rem">pimport -R owner/repo</code> with your team.
+          Any branch or raw URL works.
+        </p>
+      </div>
     </div>
   </section>
 
