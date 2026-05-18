@@ -40,7 +40,21 @@ pupdate() {
     return 1
   fi
 
+  # Download cmd-update.zsh first and re-source it so _popular_upstream_paths
+  # reflects any newly added modules before the main download loop runs.
+  # Without this, a file added to the list only appears after a second pupdate.
+  local updater_rel="lib/popular/cmd-update.zsh"
+  tmp="${root}/${updater_rel}.tmp.$$"
+  if ! curl -fsSL "$base/$updater_rel" -o "$tmp"; then
+    _popular_warn "pupdate: download failed: $base/$updater_rel"
+    rm -f "$tmp"
+    return 1
+  fi
+  mv -f "$tmp" "${root}/${updater_rel}"
+  source "${root}/${updater_rel}" 2>/dev/null
+
   for rel in "${_popular_upstream_paths[@]}"; do
+    [[ "$rel" == "$updater_rel" ]] && continue   # already fetched above
     tmp="${root}/${rel}.tmp.$$"
     mkdir -p "${tmp:h}"
     if ! curl -fsSL "$base/$rel" -o "$tmp"; then
