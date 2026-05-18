@@ -1,6 +1,6 @@
 # Contributing to popular.zsh
 
-Thanks for helping improve this project. This guide covers how to set up a local copy, what to watch when changing code, and how we prefer contributions to arrive.
+Thanks for helping improve this project. This guide covers how to set up a local copy, what to watch when changing code, and how contributions should arrive.
 
 ## Prerequisites
 

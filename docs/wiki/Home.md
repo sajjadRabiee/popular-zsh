@@ -1,61 +1,32 @@
-# popular.zsh Wiki
+# popular.zsh
 
-Welcome to the wiki for `popular.zsh`.
+Tiny `zsh` shortcuts for saving, running, and templating your most-used commands — with optional **secret placeholders** kept out of shared exports.
 
-`popular.zsh` is a tiny helper for `zsh` that lets you save, run, and template frequently used commands with a small set of memorable shortcuts—including optional **secret placeholders** (`<<key>>`) stored outside the shared command file.
-
-## What it gives you
-
-- `padd` to save commands
-- `paddh` to save a command from history by event number
-- `p` to run commands (with `{{}}`, `[[]]`, and `<< >>` substitution)
-- `pls` to browse saved commands (with template and secret hints)
-- `premove` to remove entries (and per-command secret rows)
-- `pexport` and `pimport` to export or merge saved commands (`pexport` never exports secrets); import directly from a GitHub repo with `pimport -R owner/repo`
-- `psecret` / `psecret --global` to fill secret placeholders — values are encrypted at rest with AES-256-CBC
-- `plock` to clear the cached master password from the current shell session
-- `psecret-migrate` to upgrade a v1 plain-text secrets file to the v2 encrypted format
-- `pedit` / `pedit <name>` to edit the whole file or one command (default editor: vim)
-- `pcli` to drop into a sub-shell where saved command names work directly (no `p` prefix; `bye` to exit)
-- `phelp` for formatted help in the terminal
-- tab completion for saved names (`p`, `premove`, `pedit`, `pls` filters)
-- tab completion for template options like `--port=` or `--class=`
-- modular sources under `lib/popular/` loaded from `popular.zsh`
-- `pupdate` to refresh those files from GitHub
-
-## Quick Start
-
-Install it:
+## Quick start
 
 ```zsh
 curl -fsSL https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/install.sh | zsh
+source ~/.zshrc
+
+padd gs git status    # save a command
+p gs                  # run it
+pls                   # browse all saved commands
 ```
 
-Save something:
+## Wiki pages
 
-```zsh
-padd gs git status
-```
+| Page | What's inside |
+|------|--------------|
+| [Installation](Installation.md) | One-line install, manual setup, custom paths, bootstrapping from a pack |
+| [Command Reference](Command-Reference.md) | Every command with flags, options, and examples |
+| [Templates](Templates.md) | `{{name}}`, `[[name]]`, `<<secret>>` placeholder syntax and defaults |
+| [Examples](Examples.md) | Real-world patterns: git, docker, secrets, history, packs |
+| [Command Packs](Command-Packs.md) | Publish and import community packs with `pimport -R` |
+| [Other Shells](Other-Shells.md) | Bash, fish, nushell wrappers and troubleshooting |
+| [Why popular.zsh?](Why-popular.zsh.md) | Design philosophy |
 
-Run it:
+## Project links
 
-```zsh
-p gs
-```
-
-Use a template:
-
-```zsh
-padd serve 'python3 -m http.server {{port}}'
-p serve --port=8000
-```
-
-## Wiki Pages
-
-- [Installation](Installation.md)
-- [Command Reference](Command-Reference.md)
-- [Templates](Templates.md)
-- [Examples](Examples.md)
-- [Command Packs](Command-Packs.md)
-- [Other Shells](Other-Shells.md)
-- [Why popular.zsh?](Why-popular.zsh.md)
+- [README](../../README.md) — project overview and quick reference
+- [SECURITY.md](../../SECURITY.md) — threat model and vulnerability reporting
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) — local setup and contribution guide

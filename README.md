@@ -6,336 +6,83 @@
 
 ![demo](docs/assets/demo.gif)
 
-Tiny `zsh` shortcuts for saving, running, and templating your most-used commands—with optional **secret placeholders** kept out of exported command files.
-
-Contributions are welcome; see [`CONTRIBUTING.md`](CONTRIBUTING.md). For responsible disclosure of security issues, see [`SECURITY.md`](SECURITY.md). See [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for a list of contributors.
-
-- Preview image: `docs/assets/social-preview.png`
-- Banner (SVG): [`docs/assets/popular.svg`](docs/assets/popular.svg)
-- Banner light (SVG): [`docs/assets/popular-light.svg`](docs/assets/popular-light.svg)
-- Wiki docs: [`docs/wiki/`](docs/wiki/)
-- Launch post: [`docs/launch-post.md`](docs/launch-post.md)
-
-It gives you:
-
-- `padd` to save commands
-- `paddh` to save a line from your shell history by event number
-- `p` to run them (templates plus `<<secret>>` substitution)
-- `pls` to list them in a clean view
-- `premove` to remove them (and their per-command secrets)
-- `pexport` / `pimport` to back up, share, or merge your saved commands (`pexport` never includes secrets); import directly from a GitHub repo with `pimport -R owner/repo`
-- `psecret` / `psecret -g` to store sensitive values encrypted in a separate secrets file (AES-256-CBC, prompted master password)
-- `plock` to clear the cached master password from the current shell session
-- `psecret-migrate` to upgrade a v1 plain-text secrets file to the v2 encrypted format
-- `pedit` / `pedit <name>` to edit the whole store or one command’s text (default editor: **vim**)
-- `pcli` to drop into a sub-shell where saved command names work directly (no `p` prefix needed; type `bye` to exit)
-- `phelp` for a formatted reference in the terminal
-- tab completion for saved names (`p`, `premove`, `pedit`, `pls` filters)
-- tab completion for template options like `--class=`
-- tab completion for `psecret` (command names and secret keys)
-- `pupdate` to pull the latest `popular.zsh`, `install.sh`, and `lib/popular/*.zsh` from GitHub
-
-## Layout
-
-The entry script [`popular.zsh`](popular.zsh) sources modules under [`lib/popular/`](lib/popular/) (UI, store, templates, secrets, commands, completion). Keep that folder next to `popular.zsh` when you clone or copy the repo.
+Tiny `zsh` shortcuts for saving, running, and templating your most-used commands — with optional **secret placeholders** kept out of shared exports.
 
 ## Install
-
-### Local
-
-Add this line to your `~/.zshrc`:
-
-```zsh
-source /absolute/path/to/popular.zsh
-```
-
-Use the **directory** that contains both `popular.zsh` and `lib/popular/`.
-
-Then reload your shell:
-
-```zsh
-source ~/.zshrc
-```
-
-### Curl install
 
 ```zsh
 curl -fsSL https://raw.githubusercontent.com/sajjadRabiee/popular-zsh/main/install.sh | zsh
 ```
 
-This mirrors the repo under `~/.popular-zsh/` (including `lib/popular/*.zsh`). Override the GitHub root with `POPULAR_REPO_BASE` if needed.
+Then reload: `source ~/.zshrc`
 
-The installer detects your shell via `$SHELL` and injects the right integration automatically — a `source` line for **zsh** (`~/.zshrc`), wrapper functions for **bash** (`~/.bashrc`) or **fish** (`~/.config/fish/config.fish`), or `def` wrappers for **nushell** (`~/.config/nushell/config.nu`). Override detection with `POPULAR_SHELL=bash` (or `fish`, `nu`) before the curl command.
+The installer detects your shell and writes the right integration automatically (zsh `source` line, bash/fish/nushell wrappers). See [Installation](docs/wiki/Installation.md) for manual setup, custom directory, and other shell details.
 
-**Trust:** piping remote scripts into your shell runs whatever the URL returns. To reduce risk, clone the repo (or save `install.sh`, inspect it, then run it with `zsh install.sh`). Only point `POPULAR_REPO_BASE` at origins you trust—`pupdate` downloads from the same base.
-
-After install, upgrade in place with **`pupdate`** (same `POPULAR_REPO_BASE`), then run **`source ~/.popular-zsh/popular.zsh`** (or your path).
-
-Once installed, you can also drop into a fully-featured sub-shell with `pcli`—saved commands become first-class commands there.
-
-## Commands
+## Quick start
 
 ```zsh
-padd <name> <command...>
-paddh <history#> [name]
-p <name> [options...]
-pls [needle…]
-premove <name>
-pexport [file|-]
-pimport [-r|--replace] [-R|--remote] <file|repo>
-psecret [-g|--global] <secret-key>
-psecret <command-name> <secret-key>
-pedit [name]
-plock
-psecret-migrate
-pupdate
-pcli
-phelp
-```
+padd gs git status          # save a command
+p gs                        # run it
 
-## Examples
-
-Save and run a simple command:
-
-```zsh
-padd gs git status
-p gs
-```
-
-Save a templated command — **`[[port]]`** is a positional port; **`{{port}}`** uses `--port=`:
-
-```zsh
 padd serve 'python3 -m http.server [[port]]'
-p serve 8000
+p serve 8000                # positional template
 
-padd serveo 'python3 -m http.server {{port}}'
-p serveo --port=8000
-```
-
-Secrets stay **out** of the command store (good for sharing exports); values live beside your commands file (see **Storage**):
-
-```zsh
-padd ci 'curl -u "<<username>>:<<api-token>>" https://example.com/hook'
-print -r 'myuser' | psecret -g username
-print -r 'secret123' | psecret -g api-token
+padd ci 'curl -u "<<user>>:<<token>>" https://api.example.com'
+psecret -g user             # store secret encrypted (AES-256-CBC, never exported)
 p ci
 ```
 
-Save something you already ran (use the number from the first column of `history`):
-
-```zsh
-paddh 233
-paddh 233 gs
-paddh -1
-```
-
-Export and import the same plain-text store (`name|command` lines):
-
-```zsh
-pexport ~/popular-backup.txt
-pimport ~/popular-backup.txt
-pimport -r ~/popular-backup.txt   # replace entire store
-```
-
-Import directly from a GitHub repo (no download needed):
-
-```zsh
-pimport -R sajjadRabiee/popular-zsh-pack   # official 1000-command starter pack
-pimport -R owner/repo                       # any popular-pack repo
-pimport -R owner/repo:branch               # specific branch
-pimport -r -R owner/repo                   # replace store with remote pack
-```
-
-On a TTY, `pimport` can ask whether new secrets should be saved **globally** (`psecret -g`) or **per command**, then prompts accordingly.
-
-## Templates
-
-Placeholders use **different** syntax for different calling styles:
-
-- **`{{name}}`** — pass values as long options: `--name=value` (or `--name value`). Tab completion suggests these flags.
-- **`[[name]]`** — pass values as **plain positional** arguments to `p`, in **left-to-right order** of each **distinct** `[[name]]` the first time it appears. Repeating the same `[[name]]` in the command still uses **one** value.
-- **`{{name:value}}`** and **`[[name:value]]`** — optional inline **defaults** stored in the saved command (same file as the template). If you omit that argument when you run `p`, the default is used. You can still override with `--name=…` or an extra positional as usual. Values cannot contain `}` (curly) or `]` (bracket) respectively.
-- **`<<name>>`** — **secrets**: substituted from `POPULAR_SECRETS_FILE` when you run `p`. **Global** rows (`psecret -g`) are checked **first**; per-command values are a fallback. Use letters, digits, `_`, and `-` inside `<< >>`.
-
-```zsh
-padd serve 'python3 -m http.server [[port]]'
-p serve 8000
-
-padd serve2 'python3 -m http.server {{port}}'
-p serve2 --port=8000
-```
-
-Mixed example (positional args first in the template’s bracket order, then options):
-
-```zsh
-padd hit 'curl -s http://[[host]]:{{port}}/'
-p hit localhost --port=8080
-```
-
-All-`{{}}` example:
-
-```zsh
-padd open-model 'my-tool generate --entity_class={{class}} --env={{env}}'
-p open-model --class='my.app.models.User' --env=dev
-```
-
-### Quotes, pipes, and newlines
-
-When you call `padd`, wrap the command in **single quotes** if it contains double quotes, spaces, or shell operators. For example: `padd x 'git commit -m "fix"'`. Commands are stored in a `name|command` file; **`|`**, **`\`**, **tabs**, and **newlines** in the command are escaped automatically so pipes and quotes round-trip. If you edit the file by hand, use `\|` for a literal pipe in the command text.
-
-## Completion
-
-If `compinit` is available, the script enables completion automatically:
-
-- `p <TAB>` suggests saved command names
-- `premove <TAB>`, `pedit <TAB>`, and `pls <TAB>` suggest saved command names (each filter word after `pls`)
-- `pexport` and `pimport <TAB>` suggest file paths
-- `p serve <TAB>` suggests **`--name=`** or **`--name=default`** when the template has **`{{name}}`** or **`{{name:default}}`** (not for `[[name]]` positional slots)
-- `psecret <TAB>` then `<TAB>` suggests keys used in that command’s `<< >>` placeholders; after `-g`, suggests keys from across your store
-
-## Storage
-
-Saved commands live in:
-
-```zsh
-~/.popular_commands
-```
-
-Each line is `name|command`. The command part may contain escape sequences (`\\`, `\|`, `\t`, `\n`) produced by `popular.zsh` so the line stays unambiguous.
-
-Secrets live in a **separate** file (default):
-
-```zsh
-${POPULAR_COMMANDS_FILE}.secrets
-```
-
-Rows are tab-separated; the file is chmod `600` when created. Values are **encrypted at rest with AES-256-CBC** (openssl, PBKDF2) under a master password you set on first use. The master password is cached for the current shell session and never written to disk; run `plock` to clear it. `openssl` must be available on your `PATH`.
-
-If you have an older v1 secrets file (plain-text values), run `psecret-migrate` once to re-encrypt everything under your master password. A `.bak` copy is kept until you remove it.
-
-**`pexport` only writes the command store**, never the secrets file—safe to share exports that use `<<placeholders>>`.
-
-You can override paths with:
-
-```zsh
-export POPULAR_COMMANDS_FILE=/path/to/your/file
-export POPULAR_SECRETS_FILE=/path/to/your/secrets
-```
-
-## Using from other shells
-
-`popular.zsh` is written for **zsh**, but users of **bash**, **fish**, or any other shell can still use it as long as `zsh` is installed on the system (it ships with macOS and is one package away on Linux: `apt install zsh` / `brew install zsh`).
-
-### Bash
-
-Add thin wrapper functions to your `~/.bashrc`. Each one delegates to a one-shot `zsh` process:
-
-```bash
-# ~/.bashrc
-_p_zsh() { zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && \"\$@\"" -- "$@"; }
-p()       { _p_zsh p       "$@"; }
-padd()    { _p_zsh padd    "$@"; }
-pls()     { _p_zsh pls     "$@"; }
-premove() { _p_zsh premove "$@"; }
-pedit()   { _p_zsh pedit   "$@"; }
-pexport() { _p_zsh pexport "$@"; }
-pimport() { _p_zsh pimport "$@"; }
-psecret() { _p_zsh psecret "$@"; }
-pupdate() { _p_zsh pupdate        ; }
-phelp()   { _p_zsh phelp          ; }
-pcli()    { zsh -i -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && pcli"; }
-```
-
-> **Note:** because each call runs in its own `zsh` process, saved commands that `cd` into a directory or export variables will not affect your current bash session—that is expected behaviour. Use `pcli` (which opens an interactive zsh sub-shell) if you need a persistent working environment.
-
-### Fish
-
-Add equivalent functions to your `~/.config/fish/config.fish`:
-
-```fish
-# ~/.config/fish/config.fish
-function _p_zsh
-    set cmd $argv[1]; set -e argv[1]
-    zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && $cmd \"\$@\"" -- $argv
-end
-function p;       _p_zsh p       $argv; end
-function padd;    _p_zsh padd    $argv; end
-function pls;     _p_zsh pls     $argv; end
-function premove; _p_zsh premove $argv; end
-function pedit;   _p_zsh pedit   $argv; end
-function pexport; _p_zsh pexport $argv; end
-function pimport; _p_zsh pimport $argv; end
-function psecret; _p_zsh psecret $argv; end
-function pupdate; zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && pupdate"; end
-function phelp;   zsh -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && phelp";   end
-function pcli;    zsh -i -c "source ~/.popular-zsh/popular.zsh 2>/dev/null && pcli"; end
-```
-
-### Any shell — interactive session with `pcli`
-
-If `popular.zsh` is sourced in your `~/.zshrc` (the install script does this automatically for zsh; bash, fish, and nushell users get wrapper functions instead), you can drop into a fully-featured popular session from **any** shell simply by starting an interactive zsh:
-
-```sh
-zsh          # your .zshrc is loaded, popular.zsh included
-pcli         # now inside popular shell — saved names work directly
-```
-
-Or in one command:
-
-```sh
-zsh -i -c "source ~/.popular-zsh/popular.zsh && pcli"
-```
-
-### Nushell
-
-Nushell can call external commands directly. Wrap each `popular.zsh` function as a `def` that shells out to `zsh`:
-
-```nu
-# ~/.config/nushell/config.nu
-def p [...rest] { zsh -c $"source ~/.popular-zsh/popular.zsh && p ($rest | str join ' ')" }
-def pls [...rest] { zsh -c $"source ~/.popular-zsh/popular.zsh && pls ($rest | str join ' ')" }
-def pcli [] { zsh -i -c "source ~/.popular-zsh/popular.zsh && pcli" }
-```
-
-### Custom `POPULAR_COMMANDS_FILE`
-
-All shells share the same backing file (`~/.popular_commands` by default), so commands saved in one shell are immediately visible from any other.
-
-```bash
-# bash / fish / nu — point at the same file your zsh uses
-export POPULAR_COMMANDS_FILE="$HOME/.popular_commands"
-```
-
-See [`docs/wiki/Other-Shells.md`](docs/wiki/Other-Shells.md) for more detail and troubleshooting tips.
-
-## Command Packs
-
-A **popular-pack** is a GitHub repo with a `commands.pop` file at its root — the same `name|command` format as `pexport` output. The [official pack](https://github.com/sajjadRabiee/popular-zsh-pack) ships 1 000+ commands across 20 categories:
+Or bootstrap from 1 000+ ready-made commands:
 
 ```zsh
 pimport -R sajjadRabiee/popular-zsh-pack
 ```
 
-To publish your own pack: create a repo, add `commands.pop`, share `pimport -R owner/repo`.
+## Commands
 
-The format rules and all import shorthands are documented in [`docs/wiki/Command-Packs.md`](docs/wiki/Command-Packs.md).
+| Command | What it does |
+|---------|-------------|
+| `padd <name> <cmd...>` | Save a command |
+| `paddh <history#> [name]` | Save a line from shell history |
+| `p <name> [args...]` | Run a saved command |
+| `pls [needle]` | List saved commands |
+| `premove <name>` | Delete a command (and its per-command secrets) |
+| `pexport [file\|-]` | Export commands to a file or stdout — never includes secrets |
+| `pimport [-r] [-R] <file\|repo>` | Import / merge commands from a file or GitHub repo |
+| `psecret [-g] <key>` | Store a secret (encrypted at rest) |
+| `plock` | Clear cached master password from the current session |
+| `psecret-migrate` | Upgrade a v1 plain-text secrets file to v2 encrypted format |
+| `pedit [name]` | Edit the whole store or one command in `$EDITOR` |
+| `pcli` | Interactive sub-shell where saved names work without the `p` prefix |
+| `pupdate` | Re-download all files from GitHub in place |
+| `phelp` | Built-in command reference in the terminal |
 
-## Contributing
+→ [Full command reference](docs/wiki/Command-Reference.md)
 
-Bug reports, docs fixes, and pull requests are appreciated. Start with [`CONTRIBUTING.md`](CONTRIBUTING.md) for local setup, the install/`pupdate` path sync rule, and review expectations.
+## Storage
+
+Saved commands live in `~/.popular_commands` — one `name|command` per line, plain text, easy to version or back up. Secrets are AES-256-CBC encrypted in a **separate** file; `pexport` never includes them.
+
+Override either path:
+
+```zsh
+export POPULAR_COMMANDS_FILE=/path/to/commands
+export POPULAR_SECRETS_FILE=/path/to/secrets
+```
+
+## Docs
+
+- [Installation](docs/wiki/Installation.md) — one-line install, manual setup, custom paths, bootstrapping
+- [Command Reference](docs/wiki/Command-Reference.md) — every command with flags and options
+- [Templates](docs/wiki/Templates.md) — `{{name}}`, `[[name]]`, `<<secret>>` placeholder syntax
+- [Examples](docs/wiki/Examples.md) — git, docker, secrets, history, packs
+- [Command Packs](docs/wiki/Command-Packs.md) — publish and import community packs
+- [Other Shells](docs/wiki/Other-Shells.md) — bash, fish, nushell wrappers and troubleshooting
 
 ## Security
 
-Short version: saved shortcuts are executed with **`eval`** after template expansion — treat your commands file and **`pimport`** sources like code you trust. Secrets are encrypted at rest with AES-256-CBC under a session-cached master password; protection still depends on your `openssl` build and filesystem permissions. Details and reporting steps are in [`SECURITY.md`](SECURITY.md).
+`p` runs commands with `eval` after template expansion — treat your commands file and `pimport` sources like code you trust. Secrets use AES-256-CBC under a session-cached master password; run `plock` when stepping away. See [SECURITY.md](SECURITY.md) for the full threat model and vulnerability reporting.
 
-## Project files
+## Contributing
 
-- [`popular.zsh`](popular.zsh) — bootstrap (sources `lib/popular/*.zsh`)
-- [`install.sh`](install.sh)
-- [`lib/popular/`](lib/popular/) — UI, store, templates, secrets, per-command modules, completion
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to contribute
-- [`SECURITY.md`](SECURITY.md) — threat model and vulnerability reporting
-- [`docs/assets/popular.svg`](docs/assets/popular.svg) — README banner (dark)
-- [`docs/assets/popular-light.svg`](docs/assets/popular-light.svg) — README banner (light)
-- [`docs/launch-post.md`](docs/launch-post.md)
-- [`docs/wiki/`](docs/wiki/)
+Bug reports, docs fixes, and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, the install/`pupdate` path-sync rule, and manual testing steps.
