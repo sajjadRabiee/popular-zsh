@@ -1,8 +1,30 @@
 # lib/popular/ui.zsh
 
-_POPULAR_RULE78='──────────────────────────────────────────────────────────────────────────────'
+typeset -g _POPULAR_BOX_INNER=0
+typeset -g _POPULAR_RULE78=''
 
-_POPULAR_BOX_INNER=78
+# Set _POPULAR_BOX_INNER and _POPULAR_RULE78 to match the current terminal width.
+# Optional min_w: grow the box to at least this inner width (content-aware sizing).
+_popular_set_box_width() {
+  local -i min_w="${1:-0}"
+  local -i cols="${COLUMNS:-80}"
+  local -i inner=$(( cols - 2 ))
+  (( inner < 20 )) && inner=20
+  (( inner > 120 )) && inner=120
+  (( inner < min_w )) && inner=$min_w
+  if (( _POPULAR_BOX_INNER == inner )); then
+    return 0
+  fi
+  local rule=''
+  local -i i
+  for (( i = 0; i < inner; i++ )); do
+    rule+='─'
+  done
+  typeset -g _POPULAR_BOX_INNER=$inner
+  typeset -g _POPULAR_RULE78="$rule"
+}
+
+_popular_set_box_width  # initialise at source time
 
 _popular_box_inner_line() {
   local plain="$1"
@@ -37,9 +59,11 @@ _popular_wrap_fill() {
 }
 
 _popular_usage_sep() {
-  local dash76="${_POPULAR_RULE78[1,76]}"
-  local plain=" ${dash76} "
-  local colored=" ${fg[white]}${dash76}${reset_color} "
+  local -i sep_w=$(( _POPULAR_BOX_INNER - 2 ))
+  (( sep_w < 1 )) && sep_w=1
+  local dash="${_POPULAR_RULE78[1,$sep_w]}"
+  local plain=" ${dash} "
+  local colored=" ${fg[white]}${dash}${reset_color} "
   _popular_box_inner_line "$plain" "$colored"
 }
 
@@ -98,6 +122,7 @@ _popular_usage_example_line() {
 
 _popular_usage() {
   emulate -L zsh -o no_xtrace 2>/dev/null || setopt local_options no_xtrace 2>/dev/null
+  _popular_set_box_width
   print
   _popular_usage_box_top
   local title_plain='popular.zsh · bookmark and run shell commands'
@@ -176,8 +201,17 @@ phelp() {
 _popular_msg_box() {
   local color="$1" icon="$2" msg="$3"
   local -a lines=("${(@f)msg}")
+  local line
+  # Size the box to fit content: prefix is 5 chars ("  x  "), add 1 for trailing gap.
+  local -i max_len=0 ll
+  for line in "${lines[@]}"; do
+    [[ -z "$line" ]] && continue
+    ll=$(( ${#line} + 6 ))
+    (( ll > max_len )) && max_len=$ll
+  done
+  _popular_set_box_width $max_len
   print -r -- "${fg[$color]}╭${_POPULAR_RULE78}╮${reset_color}"
-  local first=1 line plain colored
+  local first=1 plain colored
   local -i pad
   for line in "${lines[@]}"; do
     [[ -z "$line" ]] && continue
@@ -204,6 +238,7 @@ _popular_msg_box() {
 
 _popular_help_open() {
   local cmd="$1" desc="$2"
+  _popular_set_box_width
   print
   _popular_usage_box_top
   local plain="  ${cmd} · ${desc}"

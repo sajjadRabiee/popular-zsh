@@ -2,14 +2,14 @@
 
 padd() {
   [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_padd; return 0; }
-  local name="$1"
-  shift || true
 
-  if [[ -z "$name" || $# -eq 0 ]]; then
+  if [[ $# -lt 2 ]]; then
     _popular_warn "padd: usage: padd <name> <command…>"$'\n'"run 'padd --help' for details"
     return 1
   fi
 
+  local name="$1"
+  shift
   _popular_save_entry "$name" "$*"
   _popular_info "Saved '$name'"
 }
