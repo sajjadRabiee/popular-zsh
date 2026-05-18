@@ -68,12 +68,16 @@ _popular_help_pexport() {
 }
 
 _popular_help_pimport() {
-  _popular_help_open "pimport" "import commands from a file"
-  _popular_usage_row "pimport [-r|--replace] <file>" "Merge commands from <file> into current store"
+  _popular_help_open "pimport" "import commands from a file or remote repo"
+  _popular_usage_row "pimport [-r] [-R] <file|repo>" "Merge (or replace) commands into the store"
   _popular_usage_row "-r / --replace" "Replace the entire store instead of merging"
+  _popular_usage_row "-R / --remote"  "Fetch from a URL or owner/repo shorthand (requires curl)"
   _popular_help_examples
   _popular_usage_example_line "pimport ~/my-commands.txt"
-  _popular_usage_example_line "pimport -r ~/team-commands.txt   # replace store"
+  _popular_usage_example_line "pimport -r ~/team-commands.txt"
+  _popular_usage_example_line "pimport -R alice/popular-git-pack"
+  _popular_usage_example_line "pimport -R alice/popular-git-pack:dev"
+  _popular_usage_example_line "pimport -r -R alice/popular-git-pack   # replace with remote pack"
   _popular_help_close
 }
 

@@ -73,15 +73,40 @@ _popular_import_merge() {
   rm -f "$names_tmp"
 }
 
+_popular_resolve_remote_url() {
+  local arg="$1"
+  if [[ "$arg" == https://* || "$arg" == http://* ]]; then
+    print -r -- "$arg"
+    return 0
+  fi
+  local owner repo branch="main" path="commands.pop"
+  if [[ "$arg" == *:* ]]; then
+    local base="${arg%%:*}"
+    branch="${arg##*:}"
+    owner="${base%%/*}"
+    repo="${base#*/}"
+  elif [[ "$arg" == */*/* ]]; then
+    owner="${arg%%/*}"
+    local rest="${arg#*/}"
+    repo="${rest%%/*}"
+    path="${rest#*/}"
+  else
+    owner="${arg%%/*}"
+    repo="${arg#*/}"
+  fi
+  print -r -- "https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}"
+}
+
 pimport() {
   [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_pimport; return 0; }
-  local replace=0 src
+  local replace=0 remote=0 src tmp_remote=""
 
   while [[ "$1" == -* ]]; do
     case "$1" in
       -r | --replace) replace=1 ;;
+      -R | --remote)  remote=1  ;;
       *)
-        _popular_warn "pimport: unknown option: $1"$'\n'"usage: pimport [-r|--replace] <file>"$'\n'"run 'pimport --help' for details"
+        _popular_warn "pimport: unknown option: $1"$'\n'"usage: pimport [-r|--replace] [-R|--remote] <file|repo>"$'\n'"run 'pimport --help' for details"
         return 1
         ;;
     esac
@@ -90,12 +115,30 @@ pimport() {
 
   src="$1"
   if [[ -z "$src" ]]; then
-    _popular_warn "pimport: usage: pimport [-r|--replace] <file>"$'\n'"run 'pimport --help' for details"
+    _popular_warn "pimport: usage: pimport [-r|--replace] [-R|--remote] <file|repo>"$'\n'"run 'pimport --help' for details"
     return 1
+  fi
+
+  if (( remote )); then
+    if ! command -v curl >/dev/null 2>&1; then
+      _popular_warn "pimport: curl not found (required for --remote)"
+      return 1
+    fi
+    local url
+    url="$(_popular_resolve_remote_url "$src")"
+    tmp_remote=$(mktemp)
+    if ! curl -fsSL "$url" -o "$tmp_remote"; then
+      _popular_warn "pimport: download failed: $url"
+      rm -f "$tmp_remote"
+      return 1
+    fi
+    _popular_info "Fetched $url"
+    src="$tmp_remote"
   fi
 
   if [[ ! -f "$src" || ! -r "$src" ]]; then
     _popular_warn "pimport: cannot read file: $src"
+    [[ -n "$tmp_remote" ]] && rm -f "$tmp_remote"
     return 1
   fi
 
@@ -134,11 +177,13 @@ pimport() {
     [[ -n "$bad" ]] && _popular_warn "pimport: skipped invalid line(s) at: $bad"
     mv "$tmp" "$POPULAR_COMMANDS_FILE"
     _popular_import_prompt_missing_secrets "$src"
+    [[ -n "$tmp_remote" ]] && rm -f "$tmp_remote"
     _popular_info "Replaced commands from '$src'"
     return 0
   fi
 
   _popular_import_merge "$src"
   _popular_import_prompt_missing_secrets "$src"
+  [[ -n "$tmp_remote" ]] && rm -f "$tmp_remote"
   _popular_info "Merged commands from '$src'"
 }

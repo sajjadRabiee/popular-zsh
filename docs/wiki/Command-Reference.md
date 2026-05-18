@@ -70,13 +70,27 @@ With no argument, or with `-`, output goes to stdout.
 Merge commands from a file, or replace the whole store.
 
 ```zsh
-pimport ~/backup.popular.txt      # merge (same names are overwritten)
+pimport ~/backup.popular.txt       # merge (same names are overwritten)
 pimport -r ~/backup.popular.txt    # replace entire store
 ```
 
 Invalid lines (no `|` separator, empty name) are skipped with a warning.
 
 If the imported lines use **`<<secret>>`** placeholders and some values are still missing, **on a TTY** you are asked whether to save new secrets **globally** (`[g]`, default) or **separately per command** (`[s]`). Global mode lists the distinct keys from the file, then prompts once per key that does not yet have a **global** row. Non-interactive runs print hints to use `psecret` instead.
+
+### Remote import (`--remote` / `-R`)
+
+Fetch a **popular-pack** directly from GitHub (or any raw URL) without downloading manually. Requires `curl`.
+
+```zsh
+pimport -R owner/repo                        # fetches owner/repo/main/commands.pop
+pimport -R owner/repo:branch                 # specific branch
+pimport -R owner/repo/path/to/file.pop       # custom file path
+pimport -R https://example.com/cmds.pop      # full URL
+pimport -r -R owner/repo                     # replace store with remote pack
+```
+
+**popular-pack standard:** a repository with a `commands.pop` file at its root in the standard `name|command` format (the same output as `pexport`). Any git-hosting service works as long as you provide a raw file URL.
 
 ## `psecret`
 

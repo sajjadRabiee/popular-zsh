@@ -229,25 +229,33 @@ const CMDS = {
   },
 
   pimport: {
-    syntax: 'pimport [-r] <file>',
-    desc:   'Import commands from a file (merge or replace)',
+    syntax: 'pimport [-r] [-R] <file|repo>',
+    desc:   'Import commands from a file or remote popular-pack',
     lines: [
-      { type: 'prompt',  text: 'pimport ~/my-commands.txt' },
-      { type: 'success', text: 'Imported 6 command(s) — merged' },
+      { type: 'prompt',  text: 'pimport -R alice/popular-git-pack' },
+      { type: 'info',    text: 'Fetched https://raw.githubusercontent.com/alice/popular-git-pack/main/commands.pop' },
+      { type: 'success', text: 'Imported 8 command(s) — merged' },
     ],
     args: [
-      { id: 'file',    label: 'Input file',         placeholder: '~/my-commands.txt', required: true  },
-      { id: 'replace', label: 'Replace mode? (yes/no)', placeholder: 'no',            required: false },
+      { id: 'file',    label: 'File or owner/repo',     placeholder: 'alice/popular-git-pack', required: true  },
+      { id: 'remote',  label: 'Remote? (yes/no)',        placeholder: 'yes',                   required: false },
+      { id: 'replace', label: 'Replace mode? (yes/no)',  placeholder: 'no',                    required: false },
     ],
     simulate(i) {
       const file = i.file.trim();
-      if (!file) return [{ type: 'error', text: 'pimport: file required' }];
-      const r = i.replace.trim().toLowerCase();
-      const isReplace = r === 'yes' || r === 'y' || r === '-r';
-      return [
-        { type: 'prompt',  text: `pimport${isReplace ? ' -r' : ''} ${file}` },
-        { type: 'success', text: `Imported 6 command(s) — ${isReplace ? 'replaced' : 'merged'}` },
-      ];
+      if (!file) return [{ type: 'error', text: 'pimport: file or repo required' }];
+      const isRemote  = ['yes', 'y', '-r', '--remote'].includes(i.remote.trim().toLowerCase());
+      const isReplace = ['yes', 'y', '-r', '--replace'].includes(i.replace.trim().toLowerCase());
+      const flags = [isRemote ? '-R' : '', isReplace ? '-r' : ''].filter(Boolean).join(' ');
+      const cmd   = `pimport ${flags} ${file}`.replace(/ {2,}/g, ' ').trim();
+      const lines = [{ type: 'prompt', text: cmd }];
+      if (isRemote) {
+        const isUrl = file.startsWith('https://') || file.startsWith('http://');
+        const url   = isUrl ? file : `https://raw.githubusercontent.com/${file}/main/commands.pop`;
+        lines.push({ type: 'info', text: `Fetched ${url}` });
+      }
+      lines.push({ type: 'success', text: `Imported 8 command(s) — ${isReplace ? 'replaced' : 'merged'}` });
+      return lines;
     }
   },
 
