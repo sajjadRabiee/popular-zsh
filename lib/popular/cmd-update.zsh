@@ -25,6 +25,7 @@ pupdate() {
   # POPULAR_INSTALL_DIR env var overrides auto-detected _POPULAR_INSTALL_DIR;
   # --dir / -d flag overrides both.
   local root="${POPULAR_INSTALL_DIR:-$_POPULAR_INSTALL_DIR}"
+  local dir_explicit=0
   local rel tmp
 
   while [[ "${1:-}" == -* ]]; do
@@ -36,6 +37,7 @@ pupdate() {
           return 1
         fi
         root="$1"
+        dir_explicit=1
         ;;
       *)
         _popular_warn "pupdate: unknown option: $1"$'\n'"usage: pupdate [-d|--dir <path>]"$'\n'"run 'pupdate --help' for details"
@@ -44,6 +46,17 @@ pupdate() {
     esac
     shift
   done
+
+  # Prompt for the install directory when no explicit override was given and
+  # we're on a real TTY.  Press Enter to accept the detected default.
+  if (( ! dir_explicit )) && [[ -z "${POPULAR_INSTALL_DIR:-}" ]] && [[ -e /dev/tty ]]; then
+    local _answer
+    print -n "Install directory [${root}]: " >/dev/tty
+    read -r _answer </dev/tty
+    if [[ -n "$_answer" ]]; then
+      root="${_answer/#\~/$HOME}"
+    fi
+  fi
 
   if [[ -z "$root" || ! -f "$root/popular.zsh" ]]; then
     _popular_warn "pupdate: could not resolve install directory"$'\n'"hint: run 'pupdate --dir /path/to/popular-zsh' or set POPULAR_INSTALL_DIR"
