@@ -4,6 +4,8 @@
 
 ![popular.zsh — bookmark, template, and run commands in zsh](docs/assets/popular.svg)
 
+![demo](docs/assets/demo.gif)
+
 Tiny `zsh` shortcuts for saving, running, and templating your most-used commands—with optional **secret placeholders** kept out of exported command files.
 
 Contributions are welcome; see [`CONTRIBUTING.md`](CONTRIBUTING.md). For responsible disclosure of security issues, see [`SECURITY.md`](SECURITY.md). See [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for a list of contributors.
