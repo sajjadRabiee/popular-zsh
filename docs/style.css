@@ -1056,6 +1056,9 @@ html[data-theme="light"] .playground-terminal::after { display: none; }
 @media (max-width: 480px) {
   .pack-card { padding: 1rem; }
   .pack-actions { flex-direction: column; align-items: stretch; }
+  .pack-import-wrap { display: flex; width: 100%; box-sizing: border-box; }
+  .pack-import-wrap code { font-size: 0.76rem; }
+  .pack-gh-link { text-align: center; padding: 0.4rem 0; }
 }
 
 /* ── Touch: hide hover panel ────────────────────────────────── */
