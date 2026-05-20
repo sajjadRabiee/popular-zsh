@@ -32,6 +32,17 @@ _popular_help_paddh() {
   _popular_help_close
 }
 
+_popular_help_pcp() {
+  _popular_help_open "pcp" "copy a rendered command to the clipboard"
+  _popular_usage_row "pcp <name> [args…]" "Expand {{opt}}, [[pos]], <<secret>> placeholders then copy to clipboard — never executes"
+  _popular_usage_row "" "macOS: pbcopy · Wayland: wl-copy · X11: xclip"
+  _popular_help_examples
+  _popular_usage_example_line "pcp gs"
+  _popular_usage_example_line "pcp serve 8000"
+  _popular_usage_example_line "pcp hit localhost --port=8080"
+  _popular_help_close
+}
+
 _popular_help_pls() {
   _popular_help_open "pls" "list saved commands"
   _popular_usage_row "pls [needle…]" "List all commands; optional case-insensitive substring filter"

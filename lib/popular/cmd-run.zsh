@@ -25,7 +25,7 @@ p() {
 }
 
 pcp() {
-  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_p; return 0; }
+  [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_pcp; return 0; }
   local name="$1"
   local command rendered
 

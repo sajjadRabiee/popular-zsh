@@ -155,6 +155,7 @@ _popular_usage() {
   _popular_usage_row "padd <name> <command…>" "Save a command"
   _popular_usage_row "paddh <#> [name]" "Save from history (event # from \`history\`; default name h<#>)"
   _popular_usage_row "p <name> [args…]" "Run: {{x}} → --x=…; [[x]] → positional; <<x>> → secret (see psecret); optional {{x:def}} / [[x:def]] defaults in the saved command"
+  _popular_usage_row "pcp <name> [args…]" "Same expansion as \`p\`, but copies result to clipboard instead of running (pbcopy / wl-copy / xclip)"
   _popular_usage_row "pls [needle…]" "List saved commands (optional: filter names, substring, case-insensitive)"
   _popular_usage_row "premove <name>" "Delete a saved command"
   _popular_usage_row "pexport [file|-]" "Export commands only (\`-\` or empty → stdout); secrets file is never included"
