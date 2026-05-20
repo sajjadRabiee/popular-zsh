@@ -7,21 +7,14 @@ typeset -g _POPULAR_RULE78=''
 # Optional min_w: grow the box to at least this inner width (content-aware sizing).
 _popular_set_box_width() {
   local -i min_w="${1:-0}"
-  local -i cols="${COLUMNS:-80}"
+  local -i cols
+  cols=$(tput cols 2>/dev/null) || cols="${COLUMNS:-80}"
   local -i inner=$(( cols - 2 ))
   (( inner < 20 )) && inner=20
   (( inner > 120 )) && inner=120
   (( inner < min_w )) && inner=$min_w
-  if (( _POPULAR_BOX_INNER == inner )); then
-    return 0
-  fi
-  local rule=''
-  local -i i
-  for (( i = 0; i < inner; i++ )); do
-    rule+='─'
-  done
   typeset -g _POPULAR_BOX_INNER=$inner
-  typeset -g _POPULAR_RULE78="$rule"
+  typeset -g _POPULAR_RULE78=${(l:$inner::─:)}
 }
 
 _popular_set_box_width  # initialise at source time
@@ -37,24 +30,41 @@ _popular_box_inner_line() {
 }
 
 _popular_wrap_fill() {
-  setopt local_options no_xtrace 2>/dev/null
   local text="$1"
-  local width="$2"
-  local -a lines
-  local -i li
+  local -i width="$2"
+  local -a in_lines words
+  local line word cur
+  local -i cur_len wlen
 
   if [[ -z "$text" ]]; then
     print ""
     return 0
   fi
 
-  lines=("${(@f)text}")
-  for (( li = 1; li <= ${#lines}; li++ )); do
-    if [[ -z "${lines[li]}" ]]; then
+  in_lines=("${(@f)text}")
+  for line in "${in_lines[@]}"; do
+    if [[ -z "$line" ]]; then
       print ""
       continue
     fi
-    fold -s -w "$width" <<< "${lines[li]}"
+    words=( ${(s: :)line} )
+    cur=""
+    cur_len=0
+    for word in "${words[@]}"; do
+      wlen=${#word}
+      if (( cur_len == 0 )); then
+        cur=$word
+        cur_len=$wlen
+      elif (( cur_len + 1 + wlen <= width )); then
+        cur="$cur $word"
+        (( cur_len += 1 + wlen ))
+      else
+        print -r -- "$cur"
+        cur=$word
+        cur_len=$wlen
+      fi
+    done
+    [[ -n "$cur" ]] && print -r -- "$cur"
   done
 }
 
@@ -85,7 +95,7 @@ _popular_usage_row() {
   local -i ci
   (( chunk_w < 8 )) && chunk_w=8
 
-  syn_pad=$(printf '%-34s' "$syn")
+  syn_pad=${(r:34:)syn}
   cont_pad=$(printf '%34s' '')
 
   chunks=("${(@f)$( _popular_wrap_fill "$desc" "$chunk_w" )}")
@@ -201,21 +211,23 @@ phelp() {
 
 _popular_msg_box() {
   local color="$1" icon="$2" msg="$3"
-  local -a lines=("${(@f)msg}")
-  local line
-  # Size the box to fit content: prefix is 5 chars ("  x  "), add 1 for trailing gap.
-  local -i max_len=0 ll
-  for line in "${lines[@]}"; do
+  _popular_set_box_width
+  local -i chunk_w=$(( _POPULAR_BOX_INNER - 6 ))
+  (( chunk_w < 8 )) && chunk_w=8
+  local -a raw_lines=("${(@f)msg}") wrapped=()
+  local line chunk
+  local -a chunks
+  for line in "${raw_lines[@]}"; do
     [[ -z "$line" ]] && continue
-    ll=$(( ${#line} + 6 ))
-    (( ll > max_len )) && max_len=$ll
+    chunks=("${(@f)$(_popular_wrap_fill "$line" "$chunk_w")}")
+    for chunk in "${chunks[@]}"; do
+      [[ -n "${chunk//[[:space:]]/}" ]] && wrapped+=("$chunk")
+    done
   done
-  _popular_set_box_width $max_len
   print -r -- "${fg[$color]}╭${_POPULAR_RULE78}╮${reset_color}"
   local first=1 plain colored
   local -i pad
-  for line in "${lines[@]}"; do
-    [[ -z "$line" ]] && continue
+  for line in "${wrapped[@]}"; do
     if (( first )); then
       plain="  ${icon}  ${line}"
       colored="  ${fg[$color]}${icon}${reset_color}  ${line}"
