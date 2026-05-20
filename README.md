@@ -45,6 +45,7 @@ pimport -R sajjadRabiee/popular-zsh-pack
 | `padd <name> <cmd...>` | Save a command |
 | `paddh <history#> [name]` | Save a line from shell history |
 | `p <name> [args...]` | Run a saved command |
+| `pcp <name> [args...]` | Expand a saved command and copy it to the clipboard |
 | `pls [needle]` | List saved commands |
 | `premove <name>` | Delete a command (and its per-command secrets) |
 | `pexport [file\|-]` | Export commands to a file or stdout — never includes secrets |

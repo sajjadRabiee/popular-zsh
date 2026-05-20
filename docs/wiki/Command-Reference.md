@@ -42,6 +42,20 @@ p serve 8000
 p other --port=8000
 ```
 
+## `pcp`
+
+Same expansion logic as `p` — resolves templates and secrets — but instead of executing the result, copies it to the clipboard and prints `Copied.`
+
+```zsh
+pcp gs
+pcp serve 8000
+pcp other --port=8000
+```
+
+Uses `pbcopy` on macOS, `wl-copy` on Wayland, or `xclip -sel clip` on X11.
+
+Useful when you need to paste the fully-expanded command into a remote SSH session, a chat window, or any other context where you can't run it locally.
+
 ## `pls`
 
 Show a polished list of saved commands with template option hints and secret hints. With arguments, only bookmarks whose **name** contains the needle (substring, case-insensitive) are shown; multiple words form one needle string.
