@@ -106,7 +106,7 @@ if [[ -o interactive ]]; then
   fi
 
   if whence compdef >/dev/null 2>&1; then
-    compdef _popular_complete_p p
+    compdef _popular_complete_p p pcp
     compdef _popular_complete_saved_names premove
     compdef _popular_complete_pls pls
 
