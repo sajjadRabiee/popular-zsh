@@ -77,6 +77,7 @@
     <div class="hero-badges">
       <span class="badge badge-green">padd</span>
       <span class="badge badge-blue">p</span>
+      <span class="badge badge-cyan">pcp</span>
       <span class="badge badge-orange">pls</span>
       <span class="badge badge-red">psecret</span>
       <span class="badge badge-cyan">pedit</span>
@@ -107,6 +108,18 @@
             <code class="mono" style="font-size:.8rem;color:var(--cyan)">[[pos]]</code>, and
             <code class="mono" style="font-size:.8rem;color:var(--red)">&lt;&lt;secret&gt;&gt;</code>
             before exec.
+          </p>
+          <span class="card-hint">— hover to preview</span>
+        </div>
+
+        <div class="feature-card" data-cmd="pcp">
+          <div class="cmd" style="color:var(--cyan)">pcp</div>
+          <p>
+            Copy a rendered command to the clipboard instead of running it — useful for
+            pasting into a remote SSH session or a chat window.
+            Uses <code class="mono" style="font-size:.8rem">pbcopy</code> on macOS,
+            <code class="mono" style="font-size:.8rem">wl-copy</code> on Wayland,
+            or <code class="mono" style="font-size:.8rem">xclip</code> on X11.
           </p>
           <span class="card-hint">— hover to preview</span>
         </div>
@@ -433,6 +446,7 @@
               <option value="padd">padd — save a command</option>
               <option value="paddh">paddh — save from history</option>
               <option value="p">p — run a command</option>
+              <option value="pcp">pcp — copy rendered command to clipboard</option>
               <option value="pls">pls — list commands</option>
               <option value="premove">premove — delete a command</option>
               <option value="pedit">pedit — edit a command</option>

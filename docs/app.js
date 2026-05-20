@@ -141,6 +141,28 @@ const CMDS = {
     }
   },
 
+  pcp: {
+    syntax: 'pcp <name> [args...]',
+    desc:   'Expand a saved command and copy the result to clipboard',
+    lines: [
+      { type: 'prompt',  text: 'pcp deploy --env=prod' },
+      { type: 'success', text: 'Copied.' },
+    ],
+    args: [
+      { id: 'name',  label: 'Command name',              placeholder: 'deploy',     required: true  },
+      { id: 'flags', label: 'Arguments / flags (opt.)',   placeholder: '--env=prod', required: false },
+    ],
+    simulate(i) {
+      const name = i.name.trim(), flags = i.flags.trim();
+      if (!name) return [{ type: 'error', text: 'pcp: command name required' }];
+      return [
+        { type: 'prompt',  text: `pcp ${name}${flags ? ' ' + flags : ''}` },
+        { type: 'dim',     text: `# expanding '${name}'...` },
+        { type: 'success', text: 'Copied.' },
+      ];
+    }
+  },
+
   pls: {
     syntax: 'pls [filter]',
     desc:   'List all saved commands, optionally filtered',
