@@ -637,6 +637,28 @@ section p {
   border-color: var(--amber);
 }
 
+.pg-field-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pg-checkbox {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--amber);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.pg-label-check {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: var(--text);
+}
+
 .pg-run {
   background: var(--amber);
   border: none;

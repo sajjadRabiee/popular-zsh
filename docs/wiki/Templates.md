@@ -23,6 +23,22 @@ Append a type keyword after `:` instead of a default to validate the value befor
 
 Type keywords (`int`, `path`, `enum=…`) are recognised by the parser. Any other suffix after `:` is treated as a default value, so existing `{{name:default}}` templates are unaffected.
 
+## Confirmation prompt
+
+Mark a command as dangerous at save time with `--confirm`. When you run it with `p`, you are asked to confirm before the command executes. Anything other than `y` or `Y` aborts without running.
+
+```zsh
+padd --confirm drop-db "psql -c 'DROP DATABASE prod'"
+p drop-db
+# → psql -c 'DROP DATABASE prod'
+# ⚠ Are you sure? [y/N] y   ← runs
+# ⚠ Are you sure? [y/N] n   ← Aborted.
+```
+
+`paddh` supports `--confirm` the same way: `paddh --confirm -1 wipe`.
+
+`pls` shows a `⚠ confirm` badge next to any guarded command. The flag is preserved when you edit the command text with `pedit` — only a fresh `padd` (without `--confirm`) removes it. `pcp` never prompts — copying to the clipboard is non-destructive.
+
 ## Examples
 
 Bracket (positional) server:

@@ -7,7 +7,7 @@ pls() {
   local count max_name line name command preview name_pad empty_pad
   local first gap needle nlow ilow
   local -i pw oi shown hi
-  local -a rows=() ochunks=() filtered=() hint_plain hint_color
+  local -a rows=() row_flags=() ochunks=() filtered=() filtered_flags=() hint_plain hint_color
 
   _popular_ensure_file
   if [[ ! -s "$POPULAR_COMMANDS_FILE" ]]; then
@@ -26,22 +26,36 @@ pls() {
     [[ -z "${line//[[:space:]]/}" ]] && continue
     [[ "$line" != *'|'* ]] && continue
     name="${line%%|*}"
-    command="${line#*|}"
-    command=$(_popular_command_decode "$command")
+    local rest="${line#*|}" raw_cmd raw_flags
+    if [[ "$rest" == *'|'* ]]; then
+      raw_cmd="${rest%%|*}"
+      raw_flags="${rest#*|}"
+    else
+      raw_cmd="$rest"
+      raw_flags=""
+    fi
+    command=$(_popular_command_decode "$raw_cmd")
     [[ -n "$name" ]] || continue
     (( ${#name} > max_name )) && max_name=${#name}
     rows+=("$name|$command")
+    row_flags+=("$raw_flags")
   done < "$POPULAR_COMMANDS_FILE"
 
   if [[ -n "$needle" ]]; then
     nlow="${needle:l}"
     filtered=()
-    for line in "${rows[@]}"; do
+    filtered_flags=()
+    for (( ri = 1; ri <= ${#rows[@]}; ri++ )); do
+      line="${rows[$ri]}"
       name="${line%%|*}"
       ilow="${name:l}"
-      [[ "$ilow" == *${(b)nlow}* ]] && filtered+=("$line")
+      if [[ "$ilow" == *${(b)nlow}* ]]; then
+        filtered+=("$line")
+        filtered_flags+=("${row_flags[$ri]}")
+      fi
     done
     rows=( "${filtered[@]}" )
+    row_flags=( "${filtered_flags[@]}" )
     max_name=12
     for line in "${rows[@]}"; do
       name="${line%%|*}"
@@ -63,7 +77,9 @@ pls() {
   fi
   print -r -- "${fg[blue]}╭${_POPULAR_RULE78}╮${reset_color}"
 
-  for line in "${rows[@]}"; do
+  local -i ri
+  for (( ri = 1; ri <= ${#rows[@]}; ri++ )); do
+    line="${rows[$ri]}"
     name="${line%%|*}"
     command="${line#*|}"
     preview="$command"
@@ -103,6 +119,19 @@ pls() {
       fi
       first=0
     done
+
+    if [[ "${row_flags[$ri]:-}" == *confirm* ]]; then
+      if (( first )); then
+        _popular_box_inner_line \
+          " ${name_pad} │ ⚠ confirm" \
+          " ${fg[green]}${name_pad}${reset_color} ${fg[blue]}│${reset_color} ${fg[yellow]}⚠ confirm${reset_color}"
+        first=0
+      else
+        _popular_box_inner_line \
+          " ${empty_pad} │ ⚠ confirm" \
+          " ${fg[white]}${empty_pad}${reset_color} ${fg[blue]}│${reset_color} ${fg[yellow]}⚠ confirm${reset_color}"
+      fi
+    fi
 
     if (( first )); then
       _popular_box_inner_line \

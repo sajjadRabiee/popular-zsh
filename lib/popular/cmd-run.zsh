@@ -3,7 +3,7 @@
 p() {
   [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_p; return 0; }
   local name="$1"
-  local command rendered
+  local command rendered flags
 
   (( $# > 0 )) && shift
 
@@ -21,6 +21,19 @@ p() {
   rendered=$(_popular_substitute_secrets "$name" "$rendered") || return 1
 
   print -r -- "${fg[cyan]}→${reset_color} $rendered"
+
+  flags=$(_popular_get_flags "$name")
+  if [[ "$flags" == *confirm* ]]; then
+    local _answer
+    print -rn -- "${fg[yellow]}⚠ Are you sure?${reset_color} [y/N] " >/dev/tty
+    read -k 1 _answer </dev/tty
+    print >/dev/tty
+    if [[ "$_answer" != y && "$_answer" != Y ]]; then
+      _popular_warn "Aborted."
+      return 1
+    fi
+  fi
+
   eval "$rendered"
 }
 

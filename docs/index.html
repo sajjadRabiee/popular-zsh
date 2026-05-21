@@ -244,6 +244,11 @@
               <td>Enum type</td>
               <td>Tab-completes the listed values; rejects anything outside the list</td>
             </tr>
+            <tr>
+              <td class="mono" style="color:var(--orange)">padd --confirm &lt;name&gt; …</td>
+              <td>Confirmation guard</td>
+              <td>Prompts <em>Are you sure? [y/N]</em> before <code class="mono" style="font-size:.85rem">p</code> executes; shown as <code class="mono" style="font-size:.85rem">⚠ confirm</code> in <code class="mono" style="font-size:.85rem">pls</code>; not triggered by <code class="mono" style="font-size:.85rem">pcp</code></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -355,6 +360,24 @@
 <span class="p">$</span> <span class="kp">p</span> <span class="a">deploy --manifest=./k8s/app.yaml</span>    <span class="c"># ok</span>
 <span class="p">$</span> <span class="kp">p</span> <span class="a">deploy --manifest=./missing.yaml</span>
 <span class="o">p: '--manifest' path does not exist: ./missing.yaml</span></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Confirmation guard <span style="color:var(--orange)">--confirm</span></h3>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span>zsh</span>
+            </div>
+            <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">--confirm drop-db</span> <span class="q">"psql -c 'DROP DATABASE prod'"</span>
+<span class="o">✓ Saved 'drop-db' (⚠ confirmation required)</span>
+<span class="p">$</span> <span class="kp">p</span> <span class="a">drop-db</span>
+<span class="c">→ psql -c 'DROP DATABASE prod'</span>
+<span class="o">⚠ Are you sure? [y/N] n</span>
+<span class="o">Aborted.</span></pre>
           </div>
         </div>
 
@@ -488,7 +511,8 @@
         </div>
       </div>
       <p style="margin-top:1rem">
-        Each command line is <code class="mono" style="font-size:.85rem">name|command</code>.
+        Each command line is <code class="mono" style="font-size:.85rem">name|command</code>
+        (or <code class="mono" style="font-size:.85rem">name|command|confirm</code> when saved with <code class="mono" style="font-size:.85rem">--confirm</code>).
         <strong style="color:var(--text)">pexport</strong> only writes the commands file —
         never the secrets file — so exports are safe to share or commit to version control.
       </p>

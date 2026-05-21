@@ -41,13 +41,14 @@ _popular_command_decode() {
 _popular_save_entry() {
   local name="$1"
   local cmd="$2"
+  local flags="${3:-}"
 
   cmd=$(_popular_command_encode "$cmd")
 
   _popular_ensure_file
   awk -F'|' -v name="$name" '$1 != name' "$POPULAR_COMMANDS_FILE" > "${POPULAR_COMMANDS_FILE}.tmp"
   mv "${POPULAR_COMMANDS_FILE}.tmp" "$POPULAR_COMMANDS_FILE"
-  print -r -- "$name|$cmd" >> "$POPULAR_COMMANDS_FILE"
+  print -r -- "$name|$cmd|$flags" >> "$POPULAR_COMMANDS_FILE"
 }
 
 _popular_get_history_command() {
@@ -83,12 +84,20 @@ _popular_names() {
 
 _popular_get_command() {
   local name="$1"
-  local line cmd
+  local cmd
 
   _popular_ensure_file
-  line=$(awk -F'|' -v name="$name" '$1 == name { line = $0 } END { print line }' "$POPULAR_COMMANDS_FILE")
-  [[ -n "$line" ]] || return 1
-  cmd="${line#*|}"
+  cmd=$(awk -F'|' -v name="$name" '$1 == name { cmd = $2 } END { print cmd }' "$POPULAR_COMMANDS_FILE")
+  [[ -n "$cmd" ]] || return 1
   cmd=$(_popular_command_decode "$cmd")
   print -r -- "$cmd"
+}
+
+_popular_get_flags() {
+  local name="$1"
+  local flags
+
+  _popular_ensure_file
+  flags=$(awk -F'|' -v name="$name" '$1 == name { flags = $3 } END { print flags }' "$POPULAR_COMMANDS_FILE")
+  print -r -- "$flags"
 }

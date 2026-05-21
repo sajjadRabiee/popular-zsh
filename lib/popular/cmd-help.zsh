@@ -9,18 +9,21 @@ _popular_help_p() {
   _popular_usage_row "  {{name:int}}"          "Integer — validated before exec; rejects non-numeric input"
   _popular_usage_row "  {{name:path}}"         "Path — validated before exec; rejects missing files/dirs"
   _popular_usage_row "  {{name:enum=a|b|c}}"  "Enum — validated before exec; tab-completes each choice"
+  _popular_usage_row "  --confirm (save time)" "If set, prompts 'Are you sure? [y/N]' before exec; abort on anything but y"
   _popular_help_examples
   _popular_usage_example_line "p gs"
   _popular_usage_example_line "p serve 8000"
   _popular_usage_example_line "p hit localhost --port=8080"
   _popular_usage_example_line "p release --env=staging   # enum: validated + tab-completed"
+  _popular_usage_example_line "p drop-db                 # ⚠ confirm prompt if saved with --confirm"
   _popular_help_close
 }
 
 _popular_help_padd() {
   _popular_help_open "padd" "save a command by name"
-  _popular_usage_row "padd <name> <command…>" "Save or replace a command"
+  _popular_usage_row "padd [--confirm] <name> <command…>" "Save or replace a command"
   _popular_usage_sep
+  _popular_usage_row "  --confirm"             "Mark as dangerous — p prompts 'Are you sure? [y/N]' before exec"
   _popular_usage_row "  {{name:int}}"          "Type annotation — integer (validated on p/pcp)"
   _popular_usage_row "  {{name:path}}"         "Type annotation — existing path (validated on p/pcp)"
   _popular_usage_row "  {{name:enum=a|b|c}}"  "Type annotation — one of the listed values; tab-completes"
@@ -31,16 +34,19 @@ _popular_help_padd() {
   _popular_usage_example_line "padd serve 'python3 -m http.server {{port:int}}'"
   _popular_usage_example_line "padd deploy 'kubectl apply -f {{manifest:path}}'"
   _popular_usage_example_line "padd rel 'kubectl rollout restart -n {{env:enum=dev|staging|prod}}'"
+  _popular_usage_example_line "padd --confirm drop-db \"psql -c 'DROP DATABASE prod'\""
   _popular_help_close
 }
 
 _popular_help_paddh() {
   _popular_help_open "paddh" "save a command from shell history"
-  _popular_usage_row "paddh <history#> [name]" "Save event # (from \`history\`); name defaults to h<#>"
+  _popular_usage_row "paddh [--confirm] <history#> [name]" "Save event # (from \`history\`); name defaults to h<#>"
   _popular_usage_row "" "Negative numbers count back: -1 = previous command"
+  _popular_usage_row "  --confirm" "Mark as dangerous — p prompts 'Are you sure? [y/N]' before exec"
   _popular_help_examples
   _popular_usage_example_line "paddh 523 deploy-staging"
   _popular_usage_example_line "paddh -1          # save previous command as h-1"
+  _popular_usage_example_line "paddh --confirm -1 wipe   # save + guard previous command"
   _popular_help_close
 }
 

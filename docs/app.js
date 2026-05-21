@@ -72,23 +72,27 @@ function showShell(id, el) {
 const CMDS = {
 
   padd: {
-    syntax: 'padd <name> <command>',
-    desc:   'Save a command by name',
+    syntax: 'padd [--confirm] <name> <command>',
+    desc:   'Save a command by name; --confirm requires a y/N prompt before each run',
     lines: [
-      { type: 'prompt',  text: 'padd gs git status' },
-      { type: 'success', text: "✓ Saved 'gs'" },
+      { type: 'prompt',  text: "padd --confirm drop-db \"psql -c 'DROP DATABASE prod'\"" },
+      { type: 'success', text: "✓ Saved 'drop-db' (⚠ confirmation required)" },
     ],
     args: [
-      { id: 'name', label: 'Name',    placeholder: 'gs',         required: true },
-      { id: 'cmd',  label: 'Command', placeholder: 'git status', required: true },
+      { id: 'name',    label: 'Name',                          placeholder: 'gs',         required: true  },
+      { id: 'cmd',     label: 'Command',                       placeholder: 'git status', required: true  },
+      { id: 'confirm', label: '--confirm (dangerous command)',  type: 'checkbox',          required: false },
     ],
     simulate(i) {
       const name = i.name.trim(), cmd = i.cmd.trim();
       if (!name) return [{ type: 'error', text: 'padd: name is required' }];
       if (!cmd)  return [{ type: 'error', text: 'padd: command is required' }];
+      const flag = i.confirm ? ' --confirm' : '';
       return [
-        { type: 'prompt',  text: `padd ${name} ${cmd}` },
-        { type: 'success', text: `✓ Saved '${name}'` },
+        { type: 'prompt',  text: `padd${flag} ${name} ${cmd}` },
+        { type: 'success', text: i.confirm
+            ? `✓ Saved '${name}' (⚠ confirmation required)`
+            : `✓ Saved '${name}'` },
       ];
     }
   },
@@ -119,25 +123,30 @@ const CMDS = {
 
   p: {
     syntax: 'p <name> [args...]',
-    desc:   'Run a saved command; expands template placeholders',
+    desc:   'Run a saved command; expands template placeholders; prompts before exec if saved with --confirm',
     lines: [
       { type: 'prompt', text: 'p gs' },
       { type: 'output', text: 'On branch main' },
       { type: 'dim',    text: 'nothing to commit, working tree clean' },
     ],
     args: [
-      { id: 'name',  label: 'Command name',              placeholder: 'gs',       required: true  },
-      { id: 'flags', label: 'Arguments / flags (opt.)',   placeholder: '--port=8080', required: false },
+      { id: 'name',    label: 'Command name',             placeholder: 'gs',          required: true  },
+      { id: 'flags',   label: 'Arguments / flags (opt.)', placeholder: '--port=8080', required: false },
+      { id: 'confirm', label: 'Has --confirm guard',      type: 'checkbox',           required: false },
     ],
     simulate(i) {
       const name = i.name.trim(), flags = i.flags.trim();
       if (!name) return [{ type: 'error', text: 'p: command name required' }];
-      return [
-        { type: 'prompt',  text: `p ${name}${flags ? ' ' + flags : ''}` },
-        { type: 'dim',     text: `# expanding '${name}'...` },
-        { type: 'output',  text: 'On branch main' },
-        { type: 'dim',     text: 'nothing to commit, working tree clean' },
+      const lines = [
+        { type: 'prompt', text: `p ${name}${flags ? ' ' + flags : ''}` },
+        { type: 'dim',    text: `# expanding '${name}'...` },
       ];
+      if (i.confirm) {
+        lines.push({ type: 'info', text: '⚠ Are you sure? [y/N] y' });
+      }
+      lines.push({ type: 'output', text: 'On branch main' });
+      lines.push({ type: 'dim',    text: 'nothing to commit, working tree clean' });
+      return lines;
     }
   },
 
@@ -539,22 +548,35 @@ function pgSelectCommand(key) {
 
   data.args.forEach(arg => {
     const field = document.createElement('div');
-    field.className = 'pg-field';
 
-    const lbl = document.createElement('label');
-    lbl.className = 'pg-label';
-    lbl.setAttribute('for', 'pg-arg-' + arg.id);
-    lbl.textContent = arg.label;
+    if (arg.type === 'checkbox') {
+      field.className = 'pg-field pg-field-check';
+      const inp = document.createElement('input');
+      inp.type = 'checkbox';
+      inp.className = 'pg-checkbox';
+      inp.id = 'pg-arg-' + arg.id;
+      const lbl = document.createElement('label');
+      lbl.className = 'pg-label pg-label-check';
+      lbl.setAttribute('for', 'pg-arg-' + arg.id);
+      lbl.textContent = arg.label;
+      field.appendChild(inp);
+      field.appendChild(lbl);
+    } else {
+      field.className = 'pg-field';
+      const lbl = document.createElement('label');
+      lbl.className = 'pg-label';
+      lbl.setAttribute('for', 'pg-arg-' + arg.id);
+      lbl.textContent = arg.label;
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.className = 'pg-input';
+      inp.id = 'pg-arg-' + arg.id;
+      inp.placeholder = arg.placeholder || '';
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') pgRun(); });
+      field.appendChild(lbl);
+      field.appendChild(inp);
+    }
 
-    const inp = document.createElement('input');
-    inp.type = 'text';
-    inp.className = 'pg-input';
-    inp.id = 'pg-arg-' + arg.id;
-    inp.placeholder = arg.placeholder;
-    inp.addEventListener('keydown', e => { if (e.key === 'Enter') pgRun(); });
-
-    field.appendChild(lbl);
-    field.appendChild(inp);
     container.appendChild(field);
   });
 }
@@ -567,7 +589,11 @@ function pgRun() {
   const inputs = {};
   (data.args || []).forEach(arg => {
     const el = document.getElementById('pg-arg-' + arg.id);
-    inputs[arg.id] = el ? el.value : '';
+    if (el && el.type === 'checkbox') {
+      inputs[arg.id] = el.checked;
+    } else {
+      inputs[arg.id] = el ? el.value : '';
+    }
   });
 
   pgAnimate(data.simulate(inputs));
