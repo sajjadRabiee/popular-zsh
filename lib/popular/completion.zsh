@@ -14,7 +14,7 @@ _popular_complete_pls() {
 
 _popular_complete_template_options() {
   local name="$1"
-  local command kind pname rest def
+  local command kind pname rest def typ
   local -a options=()
   local word used
   local -A seen_c
@@ -27,32 +27,32 @@ _popular_complete_template_options() {
     [[ "$kind" != curly ]] && continue
     rest="${line#*$'\t'}"
     if [[ "$rest" != *$'\t'* ]]; then
-      pname="$rest"
-      [[ -n "${seen_c[$pname]}" ]] && continue
-      seen_c[$pname]=1
-      used=0
-      for word in "${words[@]:2}"; do
-        if [[ "$word" == --${pname} || "$word" == --${pname}=* ]]; then
-          used=1
-          break
-        fi
-      done
-      (( used )) && continue
-      options+=("--${pname}=")
+      pname="$rest"; def=""; typ=""
+    elif [[ "${rest#*$'\t'}" == $'\t'* ]]; then
+      pname="${rest%%$'\t'*}"; def=""; typ="${rest#*$'\t\t'}"
     else
-      pname="${rest%%$'\t'*}"
-      def="${rest#*$'\t'}"
-      [[ -n "${seen_c[$pname]}" ]] && continue
-      seen_c[$pname]=1
-      used=0
-      for word in "${words[@]:2}"; do
-        if [[ "$word" == --${pname} || "$word" == --${pname}=* ]]; then
-          used=1
-          break
-        fi
+      pname="${rest%%$'\t'*}"; def="${rest#*$'\t'}"; typ=""
+    fi
+    [[ -n "${seen_c[$pname]}" ]] && continue
+    seen_c[$pname]=1
+    used=0
+    for word in "${words[@]:2}"; do
+      if [[ "$word" == --${pname} || "$word" == --${pname}=* ]]; then
+        used=1
+        break
+      fi
+    done
+    (( used )) && continue
+    if [[ "$typ" == enum=* ]]; then
+      local -a _ev=("${(s:|:)${typ#enum=}}")
+      local _v
+      for _v in "${_ev[@]}"; do
+        options+=("--${pname}=${_v}")
       done
-      (( used )) && continue
+    elif [[ -n "$def" ]]; then
       options+=("--${pname}=${def}")
+    else
+      options+=("--${pname}=")
     fi
   done < <(_popular_emit_template_slots "$command")
 

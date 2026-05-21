@@ -164,7 +164,7 @@ _popular_usage() {
   _popular_usage_sep
   _popular_usage_row "padd <name> <command…>" "Save a command"
   _popular_usage_row "paddh <#> [name]" "Save from history (event # from \`history\`; default name h<#>)"
-  _popular_usage_row "p <name> [args…]" "Run: {{x}} → --x=…; [[x]] → positional; <<x>> → secret (see psecret); optional {{x:def}} / [[x:def]] defaults in the saved command"
+  _popular_usage_row "p <name> [args…]" "Run: {{x}} → --x=…; [[x]] → positional; <<x>> → secret; {{x:def}} → default; {{x:int/path/enum=…}} → typed (validated before exec)"
   _popular_usage_row "pcp <name> [args…]" "Same expansion as \`p\`, but copies result to clipboard instead of running (pbcopy / wl-copy / xclip)"
   _popular_usage_row "pls [needle…]" "List saved commands (optional: filter names, substring, case-insensitive)"
   _popular_usage_row "premove <name>" "Delete a saved command"
@@ -193,6 +193,9 @@ _popular_usage() {
   _popular_usage_example_line 'p serve --port=8000   # when saved with {{port}}'
   _popular_usage_example_line "padd lazy 'curl http://[[host:localhost]]:[[port:8080]]/health'"
   _popular_usage_example_line 'p lazy                  # uses localhost and 8080 from template'
+  _popular_usage_example_line "padd serve 'python3 -m http.server {{port:int}}'"
+  _popular_usage_example_line "padd rel 'kubectl rollout restart -n {{env:enum=dev|staging|prod}}'"
+  _popular_usage_example_line 'p rel --env=staging   # enum: validated before exec, tab-completed'
   _popular_usage_example_line 'pls git               # list commands whose name contains "git"'
   _popular_usage_box_bot
   print

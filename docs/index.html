@@ -229,6 +229,21 @@
               <td>Secret (encrypted)</td>
               <td>Set once with <code class="mono" style="font-size:.85rem">psecret -g key</code>; encrypted at rest, never in exports</td>
             </tr>
+            <tr>
+              <td class="mono" style="color:var(--purple)">&#123;&#123;name:int&#125;&#125; / [[name:int]]</td>
+              <td>Integer type</td>
+              <td>Rejected at run time if the value is not a whole number</td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--purple)">&#123;&#123;name:path&#125;&#125; / [[name:path]]</td>
+              <td>Path type</td>
+              <td>Rejected at run time if the path does not exist on disk</td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--purple)">&#123;&#123;name:enum=a|b|c&#125;&#125;</td>
+              <td>Enum type</td>
+              <td>Tab-completes the listed values; rejects anything outside the list</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -291,6 +306,55 @@
 <span class="o">master password: ••••••••</span>
 <span class="o">Enter value for token: ••••••••</span>
 <span class="p">$</span> <span class="kp">p</span> <span class="a">hook</span>    <span class="c"># token injected at runtime</span></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Typed: integer <span style="color:var(--purple)">&#123;&#123;port:int&#125;&#125;</span></h3>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span>zsh</span>
+            </div>
+            <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">serve</span> <span class="q">'python3 -m http.server <span class="ph">{{port:int}}</span>'</span>
+<span class="p">$</span> <span class="kp">p</span> <span class="a">serve --port=8000</span>    <span class="c"># ok</span>
+<span class="p">$</span> <span class="kp">p</span> <span class="a">serve --port=abc</span>
+<span class="o">p: '--port' expects an integer, got 'abc'</span></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Typed: enum <span style="color:var(--purple)">&#123;&#123;env:enum=…&#125;&#125;</span></h3>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span>zsh</span>
+            </div>
+            <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">release</span> <span class="q">'kubectl rollout restart deploy/app -n <span class="ph">{{env:enum=dev|staging|prod}}</span>'</span>
+<span class="p">$</span> <span class="kp">p</span> <span class="a">release --env=</span><span class="c">[tab → dev  staging  prod]</span>
+<span class="p">$</span> <span class="kp">p</span> <span class="a">release --env=staging</span>    <span class="c"># ok</span>
+<span class="p">$</span> <span class="kp">p</span> <span class="a">release --env=qa</span>
+<span class="o">p: '--env' must be one of: dev, staging, prod — got 'qa'</span></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Typed: path <span style="color:var(--purple)">&#123;&#123;file:path&#125;&#125;</span></h3>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span>zsh</span>
+            </div>
+            <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">deploy</span> <span class="q">'kubectl apply -f <span class="ph">{{manifest:path}}</span>'</span>
+<span class="p">$</span> <span class="kp">p</span> <span class="a">deploy --manifest=./k8s/app.yaml</span>    <span class="c"># ok</span>
+<span class="p">$</span> <span class="kp">p</span> <span class="a">deploy --manifest=./missing.yaml</span>
+<span class="o">p: '--manifest' path does not exist: ./missing.yaml</span></pre>
           </div>
         </div>
 

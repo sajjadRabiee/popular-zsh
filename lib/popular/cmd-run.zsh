@@ -5,7 +5,7 @@ p() {
   local name="$1"
   local command rendered
 
-  shift || true
+  (( $# > 0 )) && shift
 
   if [[ -z "$name" ]]; then
     _popular_warn "p: usage: p <name> [args…]"$'\n'"run 'p --help' for details"
@@ -29,7 +29,7 @@ pcp() {
   local name="$1"
   local command rendered
 
-  shift || true
+  (( $# > 0 )) && shift
 
   if [[ -z "$name" ]]; then
     _popular_warn "pcp: usage: pcp <name> [args…]"$'\n'"run 'pcp --help' for details"
