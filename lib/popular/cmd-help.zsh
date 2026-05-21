@@ -4,8 +4,9 @@
 
 _popular_help_p() {
   _popular_help_open "p" "run a saved command"
-  _popular_usage_row "p <name> [args…]" "Expand {{opt}}, [[pos]], <<secret>> placeholders then exec"
+  _popular_usage_row "p [--dry-run] <name> [args…]" "Expand {{opt}}, [[pos]], <<secret>> placeholders then exec"
   _popular_usage_sep
+  _popular_usage_row "  --dry-run"             "Print fully expanded command and exit; <<secrets>> left unsubstituted"
   _popular_usage_row "  {{name:int}}"          "Integer — validated before exec; rejects non-numeric input"
   _popular_usage_row "  {{name:path}}"         "Path — validated before exec; rejects missing files/dirs"
   _popular_usage_row "  {{name:enum=a|b|c}}"  "Enum — validated before exec; tab-completes each choice"
@@ -16,6 +17,7 @@ _popular_help_p() {
   _popular_usage_example_line "p hit localhost --port=8080"
   _popular_usage_example_line "p release --env=staging   # enum: validated + tab-completed"
   _popular_usage_example_line "p drop-db                 # ⚠ confirm prompt if saved with --confirm"
+  _popular_usage_example_line "p --dry-run deploy --env=prod   # preview without running"
   _popular_help_close
 }
 

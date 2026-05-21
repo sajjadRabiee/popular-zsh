@@ -164,7 +164,7 @@ _popular_usage() {
   _popular_usage_sep
   _popular_usage_row "padd [--confirm] <name> <command…>" "Save a command; --confirm marks it dangerous (p prompts before exec)"
   _popular_usage_row "paddh <#> [name]" "Save from history (event # from \`history\`; default name h<#>)"
-  _popular_usage_row "p <name> [args…]" "Run: {{x}} → --x=…; [[x]] → positional; <<x>> → secret; {{x:def}} → default; {{x:int/path/enum=…}} → typed (validated before exec)"
+  _popular_usage_row "p [--dry-run] <name> [args…]" "Run: {{x}} → --x=…; [[x]] → positional; <<x>> → secret; {{x:def}} → default; {{x:int/path/enum=…}} → typed (validated before exec); --dry-run prints expanded command without running (secrets unsubstituted)"
   _popular_usage_row "pcp <name> [args…]" "Same expansion as \`p\`, but copies result to clipboard instead of running (pbcopy / wl-copy / xclip)"
   _popular_usage_row "pls [needle…]" "List saved commands (optional: filter names, substring, case-insensitive)"
   _popular_usage_row "premove <name>" "Delete a saved command"

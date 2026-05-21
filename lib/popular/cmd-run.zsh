@@ -2,6 +2,13 @@
 
 p() {
   [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_p; return 0; }
+
+  local dry_run=0
+  local -a _args=("$@")
+  _args=("${_args[@]:#--dry-run}")
+  (( ${#_args[@]} < $# )) && dry_run=1
+  set -- "${_args[@]}"
+
   local name="$1"
   local command rendered flags
 
@@ -18,8 +25,14 @@ p() {
   }
 
   rendered=$(_popular_render_command "$command" "$@") || return 1
-  rendered=$(_popular_substitute_secrets "$name" "$rendered") || return 1
+  if (( ! dry_run )); then
+    rendered=$(_popular_substitute_secrets "$name" "$rendered") || return 1
+  fi
 
+  if (( dry_run )); then
+    print -r -- "${fg[yellow]}dry-run${reset_color} ${fg[cyan]}→${reset_color} $rendered"
+    return 0
+  fi
   print -r -- "${fg[cyan]}→${reset_color} $rendered"
 
   flags=$(_popular_get_flags "$name")
