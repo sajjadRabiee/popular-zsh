@@ -54,6 +54,7 @@ pcp() {
   [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_pcp; return 0; }
   local name="$1"
   local command rendered
+  local -a secret_keys
 
   (( $# > 0 )) && shift
 
@@ -66,6 +67,22 @@ pcp() {
     _popular_warn "pcp: '$name' not found"
     return 1
   }
+
+  secret_keys=("${(@f)$(_popular_collect_secret_keys_for_command "$command")}")
+  secret_keys=("${secret_keys[@]:#}")
+
+  if (( ${#secret_keys[@]} > 0 )) && [[ -t 1 ]]; then
+    print -r -- "${fg[yellow]}⚠ This command contains secret(s): ${(j:, :)secret_keys}${reset_color}" >/dev/tty
+    print -r -- "${fg[yellow]}  Plaintext values will be placed in your clipboard.${reset_color}" >/dev/tty
+    local _answer
+    print -rn -- "${fg[yellow]}  Copy anyway?${reset_color} [y/N] " >/dev/tty
+    read -k 1 _answer </dev/tty
+    print >/dev/tty
+    if [[ "$_answer" != y && "$_answer" != Y ]]; then
+      _popular_warn "Aborted."
+      return 1
+    fi
+  fi
 
   rendered=$(_popular_render_command "$command" "$@") || return 1
   rendered=$(_popular_substitute_secrets "$name" "$rendered") || return 1
