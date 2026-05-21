@@ -1,0 +1,93 @@
+name: Checksums
+
+# ── When this runs ──────────────────────────────────────────────────────────
+#
+#  pull_request  →  verify job:  regenerates checksums in a dry-run and fails
+#                               the PR if they don't match what's committed.
+#                               Developers must run `sh scripts/make-checksums.sh`
+#                               and include the result in their PR.
+#
+#  push to main  →  update job: regenerates and auto-commits if stale, so a
+#                               merged PR that forgot to update checksums is
+#                               fixed immediately. Commit uses [skip ci] so it
+#                               doesn't re-trigger this workflow.
+#
+# Neither job runs when the ONLY file that changed is checksums.sha256 itself
+# (the paths filter below keeps the auto-commit from looping).
+# ────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - popular.zsh
+      - install.sh
+      - lib/popular/**
+      - scripts/make-checksums.sh
+      # checksums.sha256 is intentionally absent — the bot commit that updates
+      # it must not re-trigger this workflow (prevents an infinite loop).
+
+  pull_request:
+    paths:
+      - popular.zsh
+      - install.sh
+      - lib/popular/**
+      - scripts/make-checksums.sh
+      - checksums.sha256
+
+jobs:
+  # ── PR gate: fail if checksums are stale ───────────────────────────────────
+  verify:
+    name: Verify checksums are up to date
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Regenerate checksums
+        run: sh scripts/make-checksums.sh
+
+      - name: Fail if checksums.sha256 changed
+        run: |
+          if ! git diff --quiet checksums.sha256; then
+            echo ""
+            echo "::error::checksums.sha256 is stale."
+            echo "::error::Run  sh scripts/make-checksums.sh  and commit the result."
+            echo ""
+            git diff checksums.sha256
+            exit 1
+          fi
+          echo "checksums.sha256 is up to date ✓"
+
+  # ── Post-merge auto-fix: keep main consistent even if a PR slips through ──
+  update:
+    name: Auto-update checksums on main
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to push the updated checksums back
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Use the built-in token; the push below is filtered by paths so it
+          # won't re-trigger this workflow.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Regenerate checksums
+        run: sh scripts/make-checksums.sh
+
+      - name: Commit and push if stale
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet checksums.sha256; then
+            echo "checksums.sha256 is already up to date — nothing to commit."
+          else
+            git add checksums.sha256
+            git commit -m "ci: regenerate checksums.sha256 [skip ci]"
+            git push
+            echo "checksums.sha256 updated and pushed."
+          fi
