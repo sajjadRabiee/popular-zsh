@@ -1,7 +1,8 @@
 # lib/popular/secrets.zsh
 
 _POPULAR_SECRETS_GLOBAL='__global__'
-_POPULAR_SECRETS_HEADER='# popular.zsh secrets v2'
+_POPULAR_SECRETS_HEADER='# popular.zsh secrets v3'
+_POPULAR_SECRETS_HEADER_V2='# popular.zsh secrets v2'
 
 # Master password cached for the shell session; never exported to child processes.
 typeset -g _POPULAR_MASTER_KEY
@@ -25,25 +26,62 @@ plock() {
 }
 
 # ---------------------------------------------------------------------------
-# AES-256-CBC encryption / decryption (openssl, PBKDF2, base64)
+# AES-256-CBC + HMAC-SHA256 (encrypt-then-MAC, v3 format)
+# Stored format:  v3:<base64_cipher>:<hmac_hex>
+# Legacy v2 entries (raw base64, no HMAC) are still decrypted transparently.
 # Password is passed via environment variable to avoid process-list exposure.
-# A sentinel prefix is prepended before encrypting so decryption can detect
-# a wrong password (AES-CBC provides no built-in authentication).
+# A sentinel prefix inside the plaintext detects wrong-password decryptions.
 # ---------------------------------------------------------------------------
 
 _POPULAR_ENC_PREFIX='v2:'
 
+# Derives a MAC key from the master password so the HMAC key is separate from
+# the AES key material produced by PBKDF2.
+_popular_derive_mac_key() {
+  printf '%s' "popular.zsh-mac-v3" | \
+    openssl dgst -sha256 -hmac "$_POPULAR_MASTER_KEY" 2>/dev/null | \
+    awk '{print $NF}'
+}
+
 _popular_encrypt_value() {
   local val="$1"
-  printf '%s' "${_POPULAR_ENC_PREFIX}${val}" | \
+  local b64_cipher mac_key hmac
+
+  b64_cipher=$(printf '%s' "${_POPULAR_ENC_PREFIX}${val}" | \
     env POPULAR_ENC_KEY="$_POPULAR_MASTER_KEY" \
     openssl enc -aes-256-cbc -pbkdf2 -a -pass env:POPULAR_ENC_KEY 2>/dev/null | \
-    tr -d '\n'
+    tr -d '\n')
+  [[ -n "$b64_cipher" ]] || return 1
+
+  mac_key=$(_popular_derive_mac_key) || return 1
+  hmac=$(printf '%s' "$b64_cipher" | \
+    openssl dgst -sha256 -hmac "$mac_key" 2>/dev/null | awk '{print $NF}')
+  [[ -n "$hmac" ]] || return 1
+
+  print -r -- "v3:${b64_cipher}:${hmac}"
 }
 
 _popular_decrypt_value() {
-  local ciphertext="$1" plaintext
-  plaintext=$(printf '%s\n' "$ciphertext" | \
+  local stored="$1" b64_cipher plaintext
+
+  if [[ "$stored" == 'v3:'* ]]; then
+    local rest="${stored#v3:}"
+    local hmac="${rest##*:}"
+    b64_cipher="${rest%:*}"
+
+    local mac_key expected_hmac
+    mac_key=$(_popular_derive_mac_key) || return 1
+    expected_hmac=$(printf '%s' "$b64_cipher" | \
+      openssl dgst -sha256 -hmac "$mac_key" 2>/dev/null | awk '{print $NF}')
+    if [[ "$hmac" != "$expected_hmac" ]]; then
+      print -r -- "popular.zsh: HMAC verification failed — secrets file may have been tampered with" >&2
+      return 1
+    fi
+  else
+    b64_cipher="$stored"
+  fi
+
+  plaintext=$(printf '%s\n' "$b64_cipher" | \
     env POPULAR_ENC_KEY="$_POPULAR_MASTER_KEY" \
     openssl enc -d -aes-256-cbc -pbkdf2 -a -pass env:POPULAR_ENC_KEY 2>/dev/null)
   [[ "$plaintext" == "${_POPULAR_ENC_PREFIX}"* ]] || return 1
@@ -57,7 +95,7 @@ _popular_decrypt_value() {
 _popular_secrets_is_encrypted() {
   local first_line
   IFS= read -r first_line < "$POPULAR_SECRETS_FILE" 2>/dev/null
-  [[ "$first_line" == "$_POPULAR_SECRETS_HEADER"* ]]
+  [[ "$first_line" == "$_POPULAR_SECRETS_HEADER"* || "$first_line" == "$_POPULAR_SECRETS_HEADER_V2"* ]]
 }
 
 _popular_ensure_secrets_file() {
@@ -337,24 +375,67 @@ psecret-migrate() {
     return 1
   fi
 
-  if _popular_secrets_is_encrypted; then
-    _popular_info "Secrets file is already encrypted — nothing to do."
-    return 0
-  fi
-
   if ! command -v openssl &>/dev/null; then
     _popular_warn "psecret-migrate: openssl not found — cannot encrypt"
     return 1
   fi
 
+  local first_line
+  IFS= read -r first_line < "$POPULAR_SECRETS_FILE" 2>/dev/null
+
+  # Already at v3 — nothing to do.
+  if [[ "$first_line" == "$_POPULAR_SECRETS_HEADER"* ]]; then
+    _popular_info "Secrets file is already at the latest format (v3) — nothing to do."
+    return 0
+  fi
+
   _popular_require_key || return 1
 
   local -a entries=()
-  local line name_f key_f val_f dec_val
+  local line name_f key_f val_f
 
+  # v2 → v3: file is already AES-encrypted but lacks HMAC. Decrypt then re-encrypt.
+  if [[ "$first_line" == "$_POPULAR_SECRETS_HEADER_V2"* ]]; then
+    while IFS=$'\t' read -r name_f key_f val_f || [[ -n "$name_f" ]]; do
+      [[ -z "$name_f" || "$name_f" == '#'* ]] && continue
+      [[ -n "$name_f" && -n "$key_f" && -n "$val_f" ]] || continue
+      local plain_v
+      plain_v=$(_popular_decrypt_value "$val_f") || {
+        _popular_warn "psecret-migrate: could not decrypt ${name_f}/${key_f} — skipped"
+        continue
+      }
+      entries+=("$name_f"$'\t'"$key_f"$'\t'"$plain_v")
+    done < "$POPULAR_SECRETS_FILE"
+
+    cp "$POPULAR_SECRETS_FILE" "${POPULAR_SECRETS_FILE}.bak"
+    print -- "$_POPULAR_SECRETS_HEADER" > "$POPULAR_SECRETS_FILE"
+    chmod 600 "$POPULAR_SECRETS_FILE" 2>/dev/null
+
+    local -i count=0
+    local entry name_field key_field val_field enc
+    for entry in "${entries[@]}"; do
+      name_field="${entry%%$'\t'*}"
+      entry="${entry#*$'\t'}"
+      key_field="${entry%%$'\t'*}"
+      val_field="${entry#*$'\t'}"
+      enc=$(_popular_encrypt_value "$val_field") || {
+        _popular_warn "psecret-migrate: encryption failed for ${name_field}/${key_field} — skipped"
+        continue
+      }
+      print -r -- "$name_field"$'\t'"$key_field"$'\t'"$enc" >> "$POPULAR_SECRETS_FILE"
+      (( count++ ))
+    done
+
+    _popular_info "Upgraded ${count} secret(s) to v3 (authenticated encryption)."
+    _popular_info "v2 backup saved at: ${POPULAR_SECRETS_FILE}.bak"
+    return 0
+  fi
+
+  # v1 → v3: file is plain-text (not yet encrypted). Encode then encrypt.
   while IFS=$'\t' read -r name_f key_f val_f || [[ -n "$name_f" ]]; do
     [[ -z "$name_f" || "$name_f" == '#'* ]] && continue
     [[ -n "$name_f" && -n "$key_f" && -n "$val_f" ]] || continue
+    local dec_val
     dec_val=$(_popular_command_decode "$val_f")
     entries+=("$name_f"$'\t'"$key_f"$'\t'"$dec_val")
   done < "$POPULAR_SECRETS_FILE"
@@ -378,8 +459,8 @@ psecret-migrate() {
     (( count++ ))
   done
 
-  _popular_info "Migrated ${count} secret(s) to AES-256 encrypted format."
-  _popular_info "Unencrypted backup: ${POPULAR_SECRETS_FILE}.bak"
+  _popular_info "Migrated ${count} secret(s) to AES-256 authenticated encryption (v3)."
+  _popular_info "Plaintext backup saved at: ${POPULAR_SECRETS_FILE}.bak"
 }
 
 # ---------------------------------------------------------------------------
@@ -416,15 +497,17 @@ psecret-reset() {
         return 1
       fi
 
-      # Verify old password by calling openssl directly with the key as an
-      # explicit argument — no dependency on _POPULAR_MASTER_KEY in a subshell.
-      local first_enc verify_out
+      # Verify the old password by attempting to decrypt the first stored entry.
+      local first_enc
       first_enc=$(awk -F'\t' 'NR>1 && NF>=3 && $3!="" { print $3; exit }' "$POPULAR_SECRETS_FILE" 2>/dev/null)
       if [[ -n "$first_enc" ]]; then
-        verify_out=$(printf '%s\n' "$first_enc" | \
-          env POPULAR_ENC_KEY="$old_key" \
-          openssl enc -d -aes-256-cbc -pbkdf2 -a -pass env:POPULAR_ENC_KEY 2>/dev/null)
-        if [[ $? -ne 0 ]] || [[ "$verify_out" != "${_POPULAR_ENC_PREFIX}"* ]]; then
+        local _tmp_key="$_POPULAR_MASTER_KEY"
+        _POPULAR_MASTER_KEY="$old_key"
+        local _verify_plain
+        _verify_plain=$(_popular_decrypt_value "$first_enc")
+        local _verify_status=$?
+        _POPULAR_MASTER_KEY="$_tmp_key"
+        if (( _verify_status != 0 )); then
           _popular_warn "psecret-reset: old password is incorrect."
           return 1
         fi
