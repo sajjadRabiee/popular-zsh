@@ -73,30 +73,93 @@ pupdate() {
     return 1
   fi
 
-  # Download cmd-update.zsh first and re-source it so _popular_upstream_paths
-  # reflects any newly added modules before the main download loop runs.
-  # Without this, a file added to the list only appears after a second pupdate.
-  local updater_rel="lib/popular/cmd-update.zsh"
-  tmp="${root}/${updater_rel}.tmp.$$"
-  if ! curl -fsSL "$base/$updater_rel" -o "$tmp"; then
-    _popular_warn "pupdate: download failed: $base/$updater_rel"
-    rm -f "$tmp"
+  # ---------------------------------------------------------------------------
+  # Staged download + checksum verification.
+  # All files land in a temp dir; we verify every hash before touching $root.
+  # Fails closed: missing or mismatched checksums abort the update.
+  # ---------------------------------------------------------------------------
+
+  local _sha256
+  _sha256() {
+    if command -v sha256sum >/dev/null 2>&1; then
+      sha256sum "$1" | awk '{print $1}'
+    else
+      shasum -a 256 "$1" | awk '{print $1}'
+    fi
+  }
+
+  local stage_dir
+  stage_dir=$(mktemp -d "${TMPDIR:-/tmp}/popular-update.XXXXXX")
+  # Clean up staging dir on exit, interrupt, or error.
+  local _stage_trap="rm -rf '$stage_dir'"
+  trap "$_stage_trap" EXIT INT TERM
+
+  # 1. Fetch checksums first.
+  local checksums_file="$stage_dir/checksums.sha256"
+  if ! curl -fsSL "$base/checksums.sha256" -o "$checksums_file"; then
+    _popular_warn "pupdate: could not download checksums.sha256 — aborting"
     return 1
   fi
-  mv -f "$tmp" "${root}/${updater_rel}"
-  source "${root}/${updater_rel}" 2>/dev/null
 
+  # 2. Download cmd-update.zsh first to a staging path so _popular_upstream_paths
+  #    reflects any newly added modules before the main loop runs.
+  local updater_rel="lib/popular/cmd-update.zsh"
+  local updater_stage="$stage_dir/$updater_rel"
+  mkdir -p "${updater_stage:h}"
+  if ! curl -fsSL "$base/$updater_rel" -o "$updater_stage"; then
+    _popular_warn "pupdate: download failed: $base/$updater_rel"
+    return 1
+  fi
+
+  # 3. Verify updater before sourcing it.
+  local _exp _act
+  _exp=$(awk -v f="$updater_rel" '($2==f||$2==("*"f)){print $1}' "$checksums_file")
+  if [[ -z "$_exp" ]]; then
+    _popular_warn "pupdate: no checksum entry for $updater_rel — aborting"
+    return 1
+  fi
+  _act=$(_sha256 "$updater_stage")
+  if [[ "$_act" != "$_exp" ]]; then
+    _popular_warn "pupdate: checksum mismatch for $updater_rel — aborting"
+    return 1
+  fi
+  source "$updater_stage" 2>/dev/null
+
+  # 4. Download remaining modules to staging.
   for rel in "${_popular_upstream_paths[@]}"; do
-    [[ "$rel" == "$updater_rel" ]] && continue   # already fetched above
-    tmp="${root}/${rel}.tmp.$$"
-    mkdir -p "${tmp:h}"
-    if ! curl -fsSL "$base/$rel" -o "$tmp"; then
+    [[ "$rel" == "$updater_rel" ]] && continue
+    local stage_file="$stage_dir/$rel"
+    mkdir -p "${stage_file:h}"
+    if ! curl -fsSL "$base/$rel" -o "$stage_file"; then
       _popular_warn "pupdate: download failed: $base/$rel"
-      rm -f "$tmp"
       return 1
     fi
-    mv -f "$tmp" "${root}/${rel}"
   done
+
+  # 5. Verify all files against checksums.sha256.
+  for rel in "${_popular_upstream_paths[@]}"; do
+    local stage_file="$stage_dir/$rel"
+    _exp=$(awk -v f="$rel" '($2==f||$2==("*"f)){print $1}' "$checksums_file")
+    if [[ -z "$_exp" ]]; then
+      _popular_warn "pupdate: no checksum entry for $rel — aborting"
+      return 1
+    fi
+    _act=$(_sha256 "$stage_file")
+    if [[ "$_act" != "$_exp" ]]; then
+      _popular_warn "pupdate: checksum mismatch for $rel — aborting"
+      return 1
+    fi
+  done
+
+  # 6. All checksums pass — move files into place.
+  for rel in "${_popular_upstream_paths[@]}"; do
+    local dest="$root/$rel"
+    mkdir -p "${dest:h}"
+    mv -f "$stage_dir/$rel" "$dest"
+  done
+
+  trap - EXIT INT TERM
+  rm -rf "$stage_dir"
 
   _popular_info "Updated from $base"
 
