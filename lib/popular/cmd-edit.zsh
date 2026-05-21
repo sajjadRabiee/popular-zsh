@@ -24,6 +24,7 @@ pedit() {
     _popular_warn "pedit: could not create temp file"
     return 1
   }
+  trap "rm -f '$tmp'" EXIT INT TERM
 
   print -r -- "$cmd" > "$tmp"
   "$ed" "$tmp"
@@ -32,6 +33,7 @@ pedit() {
   cmd="$(cat "$tmp")"
   cmd="${cmd//$'\r'/}"
   rm -f "$tmp"
+  trap - EXIT INT TERM
 
   if (( st != 0 )); then
     _popular_warn "pedit: editor exited $st; changes not saved"

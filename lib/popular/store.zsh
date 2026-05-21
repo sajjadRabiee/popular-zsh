@@ -1,7 +1,10 @@
 # lib/popular/store.zsh
 
 _popular_ensure_file() {
-  [[ -f "$POPULAR_COMMANDS_FILE" ]] || : > "$POPULAR_COMMANDS_FILE"
+  if [[ ! -f "$POPULAR_COMMANDS_FILE" ]]; then
+    : > "$POPULAR_COMMANDS_FILE"
+    chmod 600 "$POPULAR_COMMANDS_FILE" 2>/dev/null
+  fi
 }
 
 _popular_command_encode() {

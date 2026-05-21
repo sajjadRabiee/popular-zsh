@@ -75,7 +75,11 @@ _popular_import_merge() {
 
 _popular_resolve_remote_url() {
   local arg="$1"
-  if [[ "$arg" == https://* || "$arg" == http://* ]]; then
+  if [[ "$arg" == http://* ]]; then
+    _popular_warn "pimport: plain http:// URLs are not allowed; use https://"
+    return 1
+  fi
+  if [[ "$arg" == https://* ]]; then
     print -r -- "$arg"
     return 0
   fi
@@ -125,7 +129,7 @@ pimport() {
       return 1
     fi
     local url
-    url="$(_popular_resolve_remote_url "$src")"
+    url="$(_popular_resolve_remote_url "$src")" || return 1
     tmp_remote=$(mktemp)
     if ! curl -fsSL "$url" -o "$tmp_remote"; then
       _popular_warn "pimport: download failed: $url"
@@ -133,6 +137,33 @@ pimport() {
       return 1
     fi
     _popular_info "Fetched $url"
+
+    # Show a preview of the downloaded file and require explicit confirmation
+    # before merging — remote files execute as shell commands via 'p <name>'.
+    if [[ -t 1 ]]; then
+      local _line_count _preview_lines=10
+      _line_count=$(wc -l < "$tmp_remote")
+      print -r "" >/dev/tty
+      print -r "${fg[yellow]}── remote file preview (${_line_count} line(s)) ──────────────────────${reset_color}" >/dev/tty
+      head -n "$_preview_lines" "$tmp_remote" | while IFS= read -r _ln; do
+        print -r "  ${_ln}" >/dev/tty
+      done
+      if (( _line_count > _preview_lines )); then
+        print -r "  ${fg[white]}… $((  _line_count - _preview_lines )) more line(s)${reset_color}" >/dev/tty
+      fi
+      print -r "${fg[yellow]}────────────────────────────────────────────────────────────────────${reset_color}" >/dev/tty
+      print -r "" >/dev/tty
+      local _answer
+      print -rn -- "${fg[yellow]}Import these commands?${reset_color} [y/N] " >/dev/tty
+      read -k 1 _answer </dev/tty
+      print >/dev/tty
+      if [[ "$_answer" != y && "$_answer" != Y ]]; then
+        _popular_warn "pimport: aborted."
+        rm -f "$tmp_remote"
+        return 1
+      fi
+    fi
+
     src="$tmp_remote"
   fi
 

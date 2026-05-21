@@ -34,10 +34,60 @@ typeset -a POPULAR_MODULE_PATHS=(
 
 mkdir -p "$INSTALL_DIR/lib/popular"
 
+# ---------------------------------------------------------------------------
+# Checksum verification — download all files to a staging dir, verify, then
+# install atomically so a partial download never lands in $INSTALL_DIR.
+# Fails closed: if checksums.sha256 is missing or any hash mismatches, abort.
+# ---------------------------------------------------------------------------
+
+_popular_sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  else
+    shasum -a 256 "$1" | awk '{print $1}'
+  fi
+}
+
+STAGE_DIR=$(mktemp -d "${TMPDIR:-/tmp}/popular-install.XXXXXX")
+trap 'rm -rf "$STAGE_DIR"' EXIT INT TERM
+
+# 1. Fetch the checksums file first.
+CHECKSUMS_FILE="$STAGE_DIR/checksums.sha256"
+if ! curl -fsSL "$REPO_BASE/checksums.sha256" -o "$CHECKSUMS_FILE"; then
+  print "error: could not download checksums.sha256 — aborting install" >&2
+  exit 1
+fi
+
+# 2. Download each module to the staging area.
+for rel in "${POPULAR_MODULE_PATHS[@]}"; do
+  stage_out="$STAGE_DIR/$rel"
+  mkdir -p "${stage_out:h}"
+  if ! curl -fsSL "$REPO_BASE/$rel" -o "$stage_out"; then
+    print "error: download failed: $rel" >&2
+    exit 1
+  fi
+done
+
+# 3. Verify every file against checksums.sha256 before touching $INSTALL_DIR.
+for rel in "${POPULAR_MODULE_PATHS[@]}"; do
+  stage_out="$STAGE_DIR/$rel"
+  expected=$(awk -v f="$rel" '($2 == f || $2 == ("*"f)) { print $1 }' "$CHECKSUMS_FILE")
+  if [[ -z "$expected" ]]; then
+    print "error: no checksum entry for $rel in checksums.sha256" >&2
+    exit 1
+  fi
+  actual=$(_popular_sha256 "$stage_out")
+  if [[ "$actual" != "$expected" ]]; then
+    print "error: checksum mismatch for $rel (expected $expected, got $actual)" >&2
+    exit 1
+  fi
+done
+
+# 4. All checks passed — move files into place.
 for rel in "${POPULAR_MODULE_PATHS[@]}"; do
   out="$INSTALL_DIR/$rel"
   mkdir -p "${out:h}"
-  curl -fsSL "$REPO_BASE/$rel" -o "$out"
+  mv -f "$STAGE_DIR/$rel" "$out"
 done
 
 # ---------------------------------------------------------------------------
@@ -52,7 +102,12 @@ done
 _popular_ask_rc() {
   local default="$1"
   if [[ -n "${POPULAR_RC_FILE:-}" ]]; then
-    print "${POPULAR_RC_FILE/#\~/$HOME}"
+    local _rc_path="${POPULAR_RC_FILE/#\~/$HOME}"
+    if [[ "$_rc_path" != "$HOME/"* && "$_rc_path" != "$HOME" ]]; then
+      print "error: POPULAR_RC_FILE must be inside \$HOME — got: ${POPULAR_RC_FILE}" >&2
+      return 1
+    fi
+    print "$_rc_path"
     return
   fi
   if [[ -e /dev/tty ]]; then
