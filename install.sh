@@ -35,9 +35,7 @@ typeset -a POPULAR_MODULE_PATHS=(
 mkdir -p "$INSTALL_DIR/lib/popular"
 
 # ---------------------------------------------------------------------------
-# Checksum verification — download all files to a staging dir, verify, then
-# install atomically so a partial download never lands in $INSTALL_DIR.
-# Fails closed: if checksums.sha256 is missing or any hash mismatches, abort.
+# Helpers
 # ---------------------------------------------------------------------------
 
 _popular_sha256() {
@@ -48,47 +46,97 @@ _popular_sha256() {
   fi
 }
 
+# Prints a 20-char ASCII progress bar: ████████░░░░░░░░░░░░
+_popular_bar() {
+  local -i cur=$1 tot=$2 w=20 filled i
+  (( tot == 0 )) && tot=1
+  filled=$(( cur * w / tot ))
+  local bar=""
+  for (( i = 0; i < w; i++ )); do
+    (( i < filled )) && bar+="█" || bar+="░"
+  done
+  printf '%s' "$bar"
+}
+
+# ---------------------------------------------------------------------------
+# Banner
+# ---------------------------------------------------------------------------
+
+printf "\n  \033[1mpopular.zsh\033[0m  ·  installing to \033[36m%s\033[0m\n\n" \
+  "${INSTALL_DIR/#$HOME/\~}"
+
+_pi_total=${#POPULAR_MODULE_PATHS[@]}
+
 STAGE_DIR=$(mktemp -d "${TMPDIR:-/tmp}/popular-install.XXXXXX")
 trap 'rm -rf "$STAGE_DIR"' EXIT INT TERM
 
+# ---------------------------------------------------------------------------
 # 1. Fetch the checksums file first.
+# ---------------------------------------------------------------------------
+
 CHECKSUMS_FILE="$STAGE_DIR/checksums.sha256"
+printf "  \033[33m▸\033[0m Fetching checksums... "
 if ! curl -fsSL "$REPO_BASE/checksums.sha256" -o "$CHECKSUMS_FILE"; then
-  print "error: could not download checksums.sha256 — aborting install" >&2
+  printf "\n\033[31merror:\033[0m could not download checksums.sha256 — aborting\n" >&2
   exit 1
 fi
+printf "\033[32m✓\033[0m\n\n"
 
+# ---------------------------------------------------------------------------
 # 2. Download each module to the staging area.
+# ---------------------------------------------------------------------------
+
+_pi_i=0
 for rel in "${POPULAR_MODULE_PATHS[@]}"; do
+  (( _pi_i++ ))
+  printf "\r  \033[33mDownloading\033[0m  [\033[36m%s\033[0m]  %2d/%-2d  %-40s" \
+    "$(_popular_bar $_pi_i $_pi_total)" $_pi_i $_pi_total "$rel"
   stage_out="$STAGE_DIR/$rel"
   mkdir -p "${stage_out:h}"
   if ! curl -fsSL "$REPO_BASE/$rel" -o "$stage_out"; then
-    print "error: download failed: $rel" >&2
+    printf "\n\033[31merror:\033[0m download failed: %s\n" "$rel" >&2
     exit 1
   fi
 done
+printf "\r  \033[32mDownloading\033[0m  [\033[32m%s\033[0m]  %2d/%-2d  %-40s\n" \
+  "$(_popular_bar $_pi_total $_pi_total)" $_pi_total $_pi_total "complete ✓"
 
+# ---------------------------------------------------------------------------
 # 3. Verify every file against checksums.sha256 before touching $INSTALL_DIR.
+# ---------------------------------------------------------------------------
+
+_pi_i=0
 for rel in "${POPULAR_MODULE_PATHS[@]}"; do
+  (( _pi_i++ ))
+  printf "\r  \033[33mVerifying  \033[0m  [\033[36m%s\033[0m]  %2d/%-2d  %-40s" \
+    "$(_popular_bar $_pi_i $_pi_total)" $_pi_i $_pi_total "$rel"
   stage_out="$STAGE_DIR/$rel"
   expected=$(awk -v f="$rel" '($2 == f || $2 == ("*"f)) { print $1 }' "$CHECKSUMS_FILE")
   if [[ -z "$expected" ]]; then
-    print "error: no checksum entry for $rel in checksums.sha256" >&2
+    printf "\n\033[31merror:\033[0m no checksum entry for %s\n" "$rel" >&2
     exit 1
   fi
   actual=$(_popular_sha256 "$stage_out")
   if [[ "$actual" != "$expected" ]]; then
-    print "error: checksum mismatch for $rel (expected $expected, got $actual)" >&2
+    printf "\n\033[31merror:\033[0m checksum mismatch: %s\n" "$rel" >&2
     exit 1
   fi
 done
+printf "\r  \033[32mVerifying  \033[0m  [\033[32m%s\033[0m]  %2d/%-2d  %-40s\n" \
+  "$(_popular_bar $_pi_total $_pi_total)" $_pi_total $_pi_total "all passed ✓"
 
+# ---------------------------------------------------------------------------
 # 4. All checks passed — move files into place.
+# ---------------------------------------------------------------------------
+
+printf "  \033[33mInstalling \033[0m  "
 for rel in "${POPULAR_MODULE_PATHS[@]}"; do
   out="$INSTALL_DIR/$rel"
   mkdir -p "${out:h}"
   mv -f "$STAGE_DIR/$rel" "$out"
 done
+printf "%d files → \033[36m%s\033[0m  \033[32m✓\033[0m\n\n" \
+  $_pi_total "${INSTALL_DIR/#$HOME/\~}"
 
 # ---------------------------------------------------------------------------
 # Interactive RC file prompt
