@@ -36,8 +36,10 @@ _popular_complete_template_options() {
     [[ -n "${seen_c[$pname]}" ]] && continue
     seen_c[$pname]=1
     used=0
-    for word in "${words[@]:2}"; do
-      if [[ "$word" == --${pname} || "$word" == --${pname}=* ]]; then
+    local -i _wi
+    for (( _wi = 3; _wi <= ${#words[@]}; _wi++ )); do
+      (( _wi == CURRENT )) && continue
+      if [[ "${words[$_wi]}" == --${pname} || "${words[$_wi]}" == --${pname}=* ]]; then
         used=1
         break
       fi

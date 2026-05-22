@@ -28,8 +28,8 @@ pls() {
     name="${line%%|*}"
     rest="${line#*|}"
     if [[ "$rest" == *'|'* ]]; then
-      raw_cmd="${rest%%|*}"
-      raw_flags="${rest#*|}"
+      raw_flags="${rest##*|}"
+      raw_cmd="${rest%|*}"
     else
       raw_cmd="$rest"
       raw_flags=""

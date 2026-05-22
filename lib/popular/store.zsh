@@ -90,7 +90,13 @@ _popular_get_command() {
   local cmd
 
   _popular_ensure_file
-  cmd=$(awk -F'|' -v name="$name" '$1 == name { cmd = $2 } END { print cmd }' "$POPULAR_COMMANDS_FILE")
+  cmd=$(awk -F'|' -v name="$name" '
+    $1 == name {
+      cmd = $2
+      for (i = 3; i <= NF-1; i++) cmd = cmd "|" $i
+    }
+    END { print cmd }
+  ' "$POPULAR_COMMANDS_FILE")
   [[ -n "$cmd" ]] || return 1
   cmd=$(_popular_command_decode "$cmd")
   print -r -- "$cmd"
@@ -101,6 +107,6 @@ _popular_get_flags() {
   local flags
 
   _popular_ensure_file
-  flags=$(awk -F'|' -v name="$name" '$1 == name { flags = $3 } END { print flags }' "$POPULAR_COMMANDS_FILE")
+  flags=$(awk -F'|' -v name="$name" '$1 == name { flags = $NF } END { print flags }' "$POPULAR_COMMANDS_FILE")
   print -r -- "$flags"
 }

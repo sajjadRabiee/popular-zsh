@@ -245,7 +245,8 @@ _popular_import_prompt_missing_secrets() {
     [[ "$line" != *'|'* ]] && continue
     name="${line%%|*}"
     [[ -z "$name" ]] && continue
-    enc_cmd="${line#*|}"
+    local _rest="${line#*|}"
+    enc_cmd="${_rest%|*}"
     cmd=$(_popular_command_decode "$enc_cmd")
     for sk in "${(@f)$(_popular_collect_secret_keys_for_command "$cmd")}"; do
       [[ -z "$sk" ]] && continue
@@ -353,7 +354,8 @@ _popular_collect_all_secret_keys() {
     name="${line%%|*}"
     [[ -z "$name" ]] && continue
     [[ "$name" == "$_POPULAR_SECRETS_GLOBAL" ]] && continue
-    enc_cmd="${line#*|}"
+    local _rest="${line#*|}"
+    enc_cmd="${_rest%|*}"
     cmd=$(_popular_command_decode "$enc_cmd")
     for sk in "${(@f)$(_popular_collect_secret_keys_for_command "$cmd")}"; do
       [[ -z "$sk" ]] && continue
