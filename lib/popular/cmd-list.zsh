@@ -2,10 +2,10 @@
 
 pls() {
   [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_pls; return 0; }
-  emulate -L zsh -o no_xtrace 2>/dev/null || setopt local_options no_xtrace 2>/dev/null
+  setopt local_options no_xtrace
   _popular_set_box_width
   local count max_name line name command preview name_pad empty_pad
-  local first gap needle nlow ilow
+  local first gap needle nlow ilow rest raw_cmd raw_flags
   local -i pw oi shown hi
   local -a rows=() row_flags=() ochunks=() filtered=() filtered_flags=() hint_plain hint_color
 
@@ -26,7 +26,7 @@ pls() {
     [[ -z "${line//[[:space:]]/}" ]] && continue
     [[ "$line" != *'|'* ]] && continue
     name="${line%%|*}"
-    local rest="${line#*|}" raw_cmd raw_flags
+    rest="${line#*|}"
     if [[ "$rest" == *'|'* ]]; then
       raw_cmd="${rest%%|*}"
       raw_flags="${rest#*|}"

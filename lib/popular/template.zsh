@@ -117,7 +117,7 @@ _popular_emit_template_slots() {
 }
 
 _popular_build_placeholder_hint_rows() {
-  emulate -L zsh -o no_xtrace 2>/dev/null || setopt local_options no_xtrace 2>/dev/null
+  setopt local_options no_xtrace
   local cmd="$1"
   local -i box_w="$2"
   local plain_ref="$3"
