@@ -53,7 +53,9 @@ _popular_import_merge() {
   done < "$src"
 
   names_tmp=$(mktemp)
+  chmod 600 "$names_tmp" 2>/dev/null
   merged_tmp=$(mktemp)
+  chmod 600 "$merged_tmp" 2>/dev/null
 
   for k in ${(k)last_no}; do
     print -r -- "${last_no[$k]}:$k"
@@ -98,6 +100,18 @@ _popular_resolve_remote_url() {
     owner="${arg%%/*}"
     repo="${arg#*/}"
   fi
+  if [[ ! "$owner" =~ '^[A-Za-z0-9._-]+$' ]]; then
+    _popular_warn "pimport: invalid GitHub owner name: $owner"
+    return 1
+  fi
+  if [[ ! "$repo" =~ '^[A-Za-z0-9._-]+$' ]]; then
+    _popular_warn "pimport: invalid GitHub repo name: $repo"
+    return 1
+  fi
+  if [[ "$path" == *..* ]]; then
+    _popular_warn "pimport: path traversal not allowed in remote path: $path"
+    return 1
+  fi
   print -r -- "https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}"
 }
 
@@ -131,6 +145,7 @@ pimport() {
     local url
     url="$(_popular_resolve_remote_url "$src")" || return 1
     tmp_remote=$(mktemp)
+    chmod 600 "$tmp_remote" 2>/dev/null
     if ! curl -fsSL "$url" -o "$tmp_remote"; then
       _popular_warn "pimport: download failed: $url"
       rm -f "$tmp_remote"

@@ -155,6 +155,20 @@ _popular_ask_rc() {
       print "error: POPULAR_RC_FILE must be inside \$HOME — got: ${POPULAR_RC_FILE}" >&2
       return 1
     fi
+    # Resolve symlinks so a symlink pointing outside $HOME is rejected.
+    local _rc_real
+    if command -v realpath >/dev/null 2>&1; then
+      _rc_real=$(realpath -m "$_rc_path" 2>/dev/null || print "$_rc_path")
+    else
+      local _rc_dir _rc_base
+      _rc_dir=$(dirname "$_rc_path")
+      _rc_base=$(basename "$_rc_path")
+      _rc_real="$(cd "$_rc_dir" 2>/dev/null && pwd -P || print "$_rc_dir")/$_rc_base"
+    fi
+    if [[ "$_rc_real" != "$HOME/"* && "$_rc_real" != "$HOME" ]]; then
+      print "error: POPULAR_RC_FILE resolves outside \$HOME — got: ${_rc_real}" >&2
+      return 1
+    fi
     print "$_rc_path"
     return
   fi

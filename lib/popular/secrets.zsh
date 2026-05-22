@@ -654,6 +654,11 @@ psecret() {
     return 1
   fi
 
+  if (( ${#sk} > 256 )); then
+    _popular_warn "psecret: secret key too long (max 256 characters)"
+    return 1
+  fi
+
   if [[ ! -t 0 ]]; then
     val="$(cat)"
     val="${val//$'\r'/}"
