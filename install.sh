@@ -89,7 +89,7 @@ printf "\033[32m✓\033[0m\n\n"
 
 _pi_i=0
 for rel in "${POPULAR_MODULE_PATHS[@]}"; do
-  (( _pi_i++ ))
+  (( ++_pi_i ))
   printf "\r  \033[33mDownloading\033[0m  [\033[36m%s\033[0m]  %2d/%-2d  %-40s" \
     "$(_popular_bar $_pi_i $_pi_total)" $_pi_i $_pi_total "$rel"
   stage_out="$STAGE_DIR/$rel"
@@ -108,7 +108,7 @@ printf "\r  \033[32mDownloading\033[0m  [\033[32m%s\033[0m]  %2d/%-2d  %-40s\n" 
 
 _pi_i=0
 for rel in "${POPULAR_MODULE_PATHS[@]}"; do
-  (( _pi_i++ ))
+  (( ++_pi_i ))
   printf "\r  \033[33mVerifying  \033[0m  [\033[36m%s\033[0m]  %2d/%-2d  %-40s" \
     "$(_popular_bar $_pi_i $_pi_total)" $_pi_i $_pi_total "$rel"
   stage_out="$STAGE_DIR/$rel"
