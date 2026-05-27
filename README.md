@@ -27,6 +27,9 @@ p gs                        # run it
 padd serve 'python3 -m http.server [[port]]'
 p serve 8000                # positional template
 
+padd -t docker,prod deploy 'docker build -t app . && docker push app'
+pls -t docker               # filter by tag
+
 padd ci 'curl -u "<<user>>:<<token>>" https://api.example.com'
 psecret -g user             # store secret encrypted (AES-256-CBC, never exported)
 p ci
@@ -42,11 +45,11 @@ pimport -R sajjadRabiee/popular-zsh-pack
 
 | Command | What it does |
 |---------|-------------|
-| `padd <name> <cmd...>` | Save a command |
-| `paddh <history#> [name]` | Save a line from shell history |
+| `padd [-t tag,…] <name> <cmd...>` | Save a command (optionally tagged) |
+| `paddh [-t tag,…] <history#> [name]` | Save a line from shell history |
 | `p <name> [args...]` | Run a saved command |
 | `pcp <name> [args...]` | Expand a saved command and copy it to the clipboard |
-| `pls [needle]` | List saved commands |
+| `pls [-t tag] [needle]` | List saved commands, optionally filtered by tag |
 | `premove <name>` | Delete a command (and its per-command secrets) |
 | `pexport [file\|-]` | Export commands to a file or stdout — never includes secrets |
 | `pimport [-r] [-R] <file\|repo>` | Import / merge commands from a file or GitHub repo |
@@ -63,7 +66,7 @@ pimport -R sajjadRabiee/popular-zsh-pack
 
 ## Storage
 
-Saved commands live in `~/.popular_commands` — one `name|command` per line, plain text, easy to version or back up. Secrets are AES-256-CBC encrypted in a **separate** file; `pexport` never includes them.
+Saved commands live in `~/.popular_commands` — one `name|command|flags` per line (with an optional `|t:tag,…` suffix for tagged entries), plain text, easy to version or back up. Old entries without tags continue to work unchanged. Secrets are AES-256-CBC encrypted in a **separate** file; `pexport` never includes them.
 
 Override either path:
 

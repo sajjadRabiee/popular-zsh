@@ -47,7 +47,8 @@ Both lists must refer to the same set of paths, or installs and `pupdate` will d
 There is no automated test harness yet. Before submitting a change, please smoke-test paths your edit touches, for example:
 
 - Save and run: `padd`, `p`, `paddh` (interactive shell only).
-- List / edit / remove: `pls`, `pedit`, `premove`.
+- Tags: `padd -t docker,prod name cmd`, then `pls -t docker` (only tagged rows) and `pls` (all rows with tag badge).
+- List / edit / remove: `pls`, `pedit` (verify tags survive a round-trip), `premove`.
 - Import / export: `pexport`, `pimport`, `pimport -r` with a small fixture file, and `pimport -R owner/repo` against a real or mock URL (set `POPULAR_REPO_BASE` to a local server to avoid network hits).
 - Secrets: `psecret`, `psecret -g`, then `p` on a command that uses `<<key>>`.
 - Completion: trigger tab completion for `p`, `pls`, `psecret`, etc., if you touch [`lib/popular/completion.zsh`](lib/popular/completion.zsh).
