@@ -45,13 +45,18 @@ _popular_save_entry() {
   local name="$1"
   local cmd="$2"
   local flags="${3:-}"
+  local tags="${4:-}"
 
   cmd=$(_popular_command_encode "$cmd")
 
   _popular_ensure_file
   awk -F'|' -v name="$name" '$1 != name' "$POPULAR_COMMANDS_FILE" > "${POPULAR_COMMANDS_FILE}.tmp"
   mv "${POPULAR_COMMANDS_FILE}.tmp" "$POPULAR_COMMANDS_FILE"
-  print -r -- "$name|$cmd|$flags" >> "$POPULAR_COMMANDS_FILE"
+  if [[ -n "$tags" ]]; then
+    print -r -- "$name|$cmd|$flags|t:$tags" >> "$POPULAR_COMMANDS_FILE"
+  else
+    print -r -- "$name|$cmd|$flags" >> "$POPULAR_COMMANDS_FILE"
+  fi
 }
 
 _popular_get_history_command() {
@@ -92,8 +97,13 @@ _popular_get_command() {
   _popular_ensure_file
   cmd=$(awk -F'|' -v name="$name" '
     $1 == name {
-      cmd = $2
-      for (i = 3; i <= NF-1; i++) cmd = cmd "|" $i
+      if ($NF ~ /^t:/) {
+        cmd = $2
+        for (i = 3; i <= NF-2; i++) cmd = cmd "|" $i
+      } else {
+        cmd = $2
+        for (i = 3; i <= NF-1; i++) cmd = cmd "|" $i
+      }
     }
     END { print cmd }
   ' "$POPULAR_COMMANDS_FILE")
@@ -107,6 +117,21 @@ _popular_get_flags() {
   local flags
 
   _popular_ensure_file
-  flags=$(awk -F'|' -v name="$name" '$1 == name { flags = $NF } END { print flags }' "$POPULAR_COMMANDS_FILE")
+  flags=$(awk -F'|' -v name="$name" '
+    $1 == name { flags = ($NF ~ /^t:/) ? $(NF-1) : $NF }
+    END { print flags }
+  ' "$POPULAR_COMMANDS_FILE")
   print -r -- "$flags"
+}
+
+_popular_get_tags() {
+  local name="$1"
+  local tags
+
+  _popular_ensure_file
+  tags=$(awk -F'|' -v name="$name" '
+    $1 == name { if ($NF ~ /^t:/) tags = substr($NF, 3) }
+    END { print tags }
+  ' "$POPULAR_COMMANDS_FILE")
+  print -r -- "$tags"
 }

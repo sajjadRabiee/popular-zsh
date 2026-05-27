@@ -3,7 +3,7 @@
 pedit() {
   [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_pedit; return 0; }
   local name="$1"
-  local cmd flags tmp ed st
+  local cmd flags tags tmp ed st
 
   _popular_ensure_file
   ed="${EDITOR:-vim}"
@@ -19,6 +19,7 @@ pedit() {
   }
 
   flags=$(_popular_get_flags "$name")
+  tags=$(_popular_get_tags "$name")
 
   tmp=$(mktemp "${TMPDIR:-/tmp}/popular-pedit.XXXXXX") || {
     _popular_warn "pedit: could not create temp file"
@@ -45,6 +46,6 @@ pedit() {
     return 1
   fi
 
-  _popular_save_entry "$name" "$cmd" "$flags"
+  _popular_save_entry "$name" "$cmd" "$flags" "$tags"
   _popular_info "Updated '$name'"
 }
