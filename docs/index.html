@@ -39,6 +39,7 @@
       <a class="nav-brand" href="#">popular.zsh</a>
       <ul class="nav-links" id="nav-links">
         <li><a href="#templates" onclick="closeMenu()">Templates</a></li>
+        <li><a href="#tags" onclick="closeMenu()">Tags</a></li>
         <li><a href="#encryption" onclick="closeMenu()">Encryption</a></li>
         <li><a href="#pcli" onclick="closeMenu()">pcli</a></li>
         <li><a href="#playground" onclick="closeMenu()">Playground</a></li>
@@ -96,7 +97,7 @@
 
         <div class="feature-card" data-cmd="padd">
           <div class="cmd" style="color:var(--green)">padd / paddh</div>
-          <p>Save commands by name, or grab a line straight from your shell history by event number.</p>
+          <p>Save commands by name, or grab a line straight from your shell history by event number. Add <code class="mono" style="font-size:.8rem">-t tag1,tag2</code> to tag for filtering.</p>
           <span class="card-hint">— hover to preview</span>
         </div>
 
@@ -126,7 +127,7 @@
 
         <div class="feature-card" data-cmd="pls">
           <div class="cmd" style="color:var(--orange)">pls</div>
-          <p>Browse saved commands with template hints and secret markers shown inline.</p>
+          <p>Browse saved commands with template hints and secret markers shown inline. Filter by tag with <code class="mono" style="font-size:.8rem">pls -t &lt;tag&gt;</code>.</p>
           <span class="card-hint">— hover to preview</span>
         </div>
 
@@ -241,8 +242,13 @@
             </tr>
             <tr>
               <td class="mono" style="color:var(--purple)">&#123;&#123;name:enum=a|b|c&#125;&#125;</td>
-              <td>Enum type</td>
+              <td>Enum type (named)</td>
               <td>Tab-completes the listed values; rejects anything outside the list</td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--cyan)">[[name:enum=a|b|c]]</td>
+              <td>Enum type (positional)</td>
+              <td>Same validation and tab completion as named enum, supplied as a positional argument</td>
             </tr>
             <tr>
               <td class="mono" style="color:var(--orange)">padd --confirm &lt;name&gt; …</td>
@@ -364,6 +370,23 @@
         </div>
 
         <div>
+          <h3>Positional enum <span style="color:var(--cyan)">[[env:enum=…]]</span></h3>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span>zsh</span>
+            </div>
+            <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">restart</span> <span class="q">'kubectl rollout restart -n <span class="ph">[[env:enum=dev|staging|prod]]</span>'</span>
+<span class="p">$</span> <span class="kp">p</span> <span class="a">restart </span><span class="c">[tab → dev  staging  prod]</span>
+<span class="p">$</span> <span class="kp">p</span> <span class="a">restart staging</span>    <span class="c"># ok</span>
+<span class="p">$</span> <span class="kp">p</span> <span class="a">restart qa</span>
+<span class="o">p: 'env' must be one of: dev, staging, prod — got 'qa'</span></pre>
+          </div>
+        </div>
+
+        <div>
           <h3>Confirmation guard <span style="color:var(--orange)">--confirm</span></h3>
           <div class="terminal">
             <div class="terminal-bar">
@@ -381,6 +404,85 @@
           </div>
         </div>
 
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Tags ──────────────────────────────────────────────── -->
+  <section id="tags">
+    <div class="container">
+      <h2><span class="hl">Tags</span></h2>
+      <p>
+        Attach comma-separated tags when saving a command and use
+        <code class="mono" style="font-size:.85rem">pls -t &lt;tag&gt;</code> to filter the list.
+        Useful once your store grows past a few dozen entries.
+      </p>
+
+      <div class="two-col" style="margin-top:1.5rem">
+
+        <div>
+          <h3>Saving with <code style="color:var(--cyan);font-size:.95rem">-t</code></h3>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span>zsh</span>
+            </div>
+            <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">-t git gs</span>        <span class="q">git status</span>
+<span class="p">$</span> <span class="k">padd</span> <span class="a">-t git,tools gst</span> <span class="q">'git status -uno'</span>
+<span class="p">$</span> <span class="k">padd</span> <span class="a">--confirm -t prod dep</span> <span class="q">'kubectl apply -f manifest.yaml'</span>
+<span class="o">✓ Saved 'dep' [prod] (⚠ confirmation required)</span></pre>
+          </div>
+        </div>
+
+        <div>
+          <h3>Filtering with <code style="color:var(--orange);font-size:.95rem">pls -t</code></h3>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span>zsh</span>
+            </div>
+            <pre><span class="p">$</span> <span class="kl">pls</span> <span class="a">-t git</span>
+<span class="o">Popular Commands  2 matching · 10 saved  #git</span>
+<span class="o">╭──────────────────────────────────╮</span>
+<span class="o">│ gs    │ git status               │</span>
+<span class="o">│       │ 🏷 git                   │</span>
+<span class="o">│                                  │</span>
+<span class="o">│ gst   │ git status -uno          │</span>
+<span class="o">│       │ 🏷 git,tools             │</span>
+<span class="o">╰──────────────────────────────────╯</span></pre>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tbl-wrap" style="margin-top:1.5rem">
+        <table>
+          <thead>
+            <tr><th>Syntax</th><th>What it does</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">padd -t &lt;tag,…&gt; &lt;name&gt; &lt;cmd&gt;</td>
+              <td>Save with one or more comma-separated tags</td>
+            </tr>
+            <tr>
+              <td class="mono">padd --confirm -t &lt;tag,…&gt; …</td>
+              <td>Combine confirmation guard and tags freely — any order</td>
+            </tr>
+            <tr>
+              <td class="mono">pls -t &lt;tag&gt;</td>
+              <td>Show only commands that carry this tag (case-insensitive)</td>
+            </tr>
+            <tr>
+              <td class="mono">pls -t &lt;tag&gt; &lt;needle&gt;</td>
+              <td>Tag filter and name substring filter combined</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </section>
@@ -511,8 +613,11 @@
         </div>
       </div>
       <p style="margin-top:1rem">
-        Each command line is <code class="mono" style="font-size:.85rem">name|command</code>
-        (or <code class="mono" style="font-size:.85rem">name|command|confirm</code> when saved with <code class="mono" style="font-size:.85rem">--confirm</code>).
+        Each command line uses a pipe-delimited format.
+        Plain saves are <code class="mono" style="font-size:.85rem">name|command|</code>.
+        Add <code class="mono" style="font-size:.85rem">--confirm</code> and it becomes <code class="mono" style="font-size:.85rem">name|command|confirm</code>.
+        Add <code class="mono" style="font-size:.85rem">-t</code> tags and a sentinel field is appended: <code class="mono" style="font-size:.85rem">name|command|confirm|t:docker,prod</code>.
+        Old entries without tags are read correctly without any migration.
         <strong style="color:var(--text)">pexport</strong> only writes the commands file —
         never the secrets file — so exports are safe to share or commit to version control.
       </p>
