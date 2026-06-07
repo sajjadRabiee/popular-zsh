@@ -108,6 +108,7 @@ New `--local` and `--global` flags.
 - **`padd`** — add `--local` to the option list at position 2 and in the fallthrough case
 - **`premove`** — add `--local` and `--global` as options at position 2, fall through to name completion
 - **Name completion for `p`, `pcp`, `pedit`, `premove`** — no change needed; `_popular_names()` already merges both files per Section 1
+- **`_popular_all_tags()`** — update to read from the local file as well, so `pls -t <tab>` surfaces local tags
 
 ---
 
@@ -126,6 +127,7 @@ New `--local` and `--global` flags.
 
 ## Out of Scope
 
+- `paddh` — always writes to global; `--local` flag not added (history-save to local is a separate concern)
 - `pedit` — no local/global distinction; user edits the file directly
 - `pexport` / `pimport` — operate on the global file only
 - `psecret` — secrets are always global
