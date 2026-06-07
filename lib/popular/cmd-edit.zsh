@@ -2,15 +2,44 @@
 
 pedit() {
   [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_pedit; return 0; }
-  local name="$1"
-  local cmd flags tags tmp ed st
+  local name="" open_local=0
+  if [[ "${1:-}" == "--local" ]]; then
+    open_local=1
+    shift
+  fi
+  name="${1:-}"
+  local cmd flags tags tmp ed st source_file
 
-  _popular_ensure_file
   ed="${EDITOR:-vim}"
 
   if [[ -z "$name" ]]; then
-    "$ed" "$POPULAR_COMMANDS_FILE"
+    if (( open_local )); then
+      local local_file
+      local_file=$(_popular_find_local_file)
+      if [[ -z "$local_file" ]]; then
+        _popular_warn "pedit: no local .popular_commands file found"
+        return 1
+      fi
+      "$ed" "$local_file"
+    else
+      _popular_ensure_file
+      "$ed" "$POPULAR_COMMANDS_FILE"
+    fi
     return 0
+  fi
+
+  # Determine which file holds this entry
+  source_file=""
+  local local_file
+  local_file=$(_popular_find_local_file)
+  if [[ -n "$local_file" ]]; then
+    local found
+    found=$(awk -F'|' -v name="$name" '$1==name{f=1} END{print f+0}' "$local_file")
+    (( found )) && source_file="$local_file"
+  fi
+  if [[ -z "$source_file" ]]; then
+    _popular_ensure_file
+    source_file="$POPULAR_COMMANDS_FILE"
   fi
 
   cmd=$(_popular_get_command "$name") || {
@@ -46,6 +75,6 @@ pedit() {
     return 1
   fi
 
-  _popular_save_entry "$name" "$cmd" "$flags" "$tags"
+  _popular_save_entry "$name" "$cmd" "$flags" "$tags" "$source_file"
   _popular_info "Updated '$name'"
 }

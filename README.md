@@ -27,6 +27,9 @@ p gs                        # run it
 padd serve 'python3 -m http.server [[port]]'
 p serve 8000                # positional template
 
+padd --local run 'npm test' # project-local command (not shared globally)
+pls                         # shows both; * marks local entries in magenta
+
 padd -t docker,prod deploy 'docker build -t app . && docker push app'
 pls -t docker               # filter by tag
 
@@ -45,19 +48,19 @@ pimport -R sajjadRabiee/popular-zsh-pack
 
 | Command | What it does |
 |---------|-------------|
-| `padd [-t tag,…] <name> <cmd...>` | Save a command (optionally tagged) |
-| `paddh [-t tag,…] <history#> [name]` | Save a line from shell history |
-| `p <name> [args...]` | Run a saved command |
+| `padd [--local] [-t tag,…] <name> <cmd...>` | Save a command; `--local` writes to `$PWD/.popular_commands` |
+| `paddh [--local] [-t tag,…] <history#> [name]` | Save a line from shell history |
+| `p <name> [args...]` | Run a saved command (checks local file first) |
 | `pcp <name> [args...]` | Expand a saved command and copy it to the clipboard |
-| `pls [-t tag] [needle]` | List saved commands, optionally filtered by tag |
-| `premove <name>` | Delete a command (and its per-command secrets) |
+| `pls [-l\|-g] [-t tag] [needle]` | List commands; `-l` local only, `-g` global only; local entries marked `*` |
+| `premove [--local\|--global] <name>` | Delete a command; default removes local-first |
 | `pexport [file\|-]` | Export commands to a file or stdout — never includes secrets |
 | `pimport [-r] [-R] <file\|repo>` | Import / merge commands from a file or GitHub repo |
 | `psecret [-g] <key>` | Store a secret (encrypted at rest) |
 | `psecret-reset` | Re-key all secrets under a new master password, or wipe them |
 | `plock` | Clear cached master password from the current session |
 | `psecret-migrate` | Upgrade a v1 plain-text secrets file to v2 encrypted format |
-| `pedit [name]` | Edit the whole store or one command in `$EDITOR` |
+| `pedit [--local] [name]` | Edit the global store, local file, or one command in `$EDITOR` |
 | `pcli` | Interactive sub-shell where saved names work without the `p` prefix |
 | `pupdate` | Re-download all files from GitHub in place |
 | `phelp` | Built-in command reference in the terminal |
@@ -68,7 +71,9 @@ pimport -R sajjadRabiee/popular-zsh-pack
 
 Saved commands live in `~/.popular_commands` — one `name|command|flags` per line (with an optional `|t:tag,…` suffix for tagged entries), plain text, easy to version or back up. Old entries without tags continue to work unchanged. Secrets are AES-256-CBC encrypted in a **separate** file; `pexport` never includes them.
 
-Override either path:
+**Project-local commands:** if a `.popular_commands` file exists in `$PWD` or any ancestor directory, `p` checks it first. Use `padd --local` to create one. `pls` shows both files together — local entries appear with a `*` prefix in magenta; use `-l` or `-g` to filter to one scope.
+
+Override the global path:
 
 ```zsh
 export POPULAR_COMMANDS_FILE=/path/to/commands

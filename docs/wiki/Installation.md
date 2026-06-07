@@ -88,6 +88,18 @@ The command file is plain text (`name|command` per line). You can copy it, versi
 
 Secret values are **encrypted at rest** with AES-256-CBC (openssl, PBKDF2). A master password is prompted on first use in each shell session and cached in memory. If you have an existing v1 plain-text secrets file, run `psecret-migrate` once to re-encrypt it.
 
+## Project-local command files
+
+If a `.popular_commands` file exists in `$PWD` or any ancestor directory, `p` checks it first — it takes priority over the global store for commands with the same name. Use `padd --local` to create one in the current directory.
+
+```zsh
+cd ~/projects/myapp
+padd --local build 'npm run build'
+git add .popular_commands   # commit alongside your code
+```
+
+`pls` shows both files together; local entries are marked with `*` in magenta. Use `pls -l` or `pls -g` to filter to one scope. `premove` defaults to local-first removal; `--local` / `--global` flags let you be explicit.
+
 ## Bootstrapping commands after install
 
 After installing, you can populate your store immediately from a [command pack](Command-Packs.md):

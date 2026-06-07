@@ -2,11 +2,61 @@
 
 premove() {
   [[ "${1:-}" == --help || "${1:-}" == -h ]] && { _popular_help_premove; return 0; }
-  local name="$1"
+
+  local scope="" name=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --local)  scope="local";  shift ;;
+      --global) scope="global"; shift ;;
+      *) break ;;
+    esac
+  done
+  name="$1"
 
   if [[ -z "$name" ]]; then
-    _popular_warn "premove: usage: premove <name>"$'\n'"run 'premove --help' for details"
+    _popular_warn "premove: usage: premove [--local|--global] <name>"$'\n'"run 'premove --help' for details"
     return 1
+  fi
+
+  local local_file
+  local_file=$(_popular_find_local_file)
+
+  if [[ "$scope" == "local" ]]; then
+    if [[ -z "$local_file" ]]; then
+      _popular_warn "premove: no local .popular_commands file found"
+      return 1
+    fi
+    local found
+    found=$(awk -F'|' -v name="$name" '$1==name{f=1} END{print f+0}' "$local_file")
+    if (( ! found )); then
+      _popular_warn "premove: '$name' not found in local file"
+      return 1
+    fi
+    awk -F'|' -v name="$name" '$1 != name' "$local_file" > "${local_file}.tmp"
+    mv "${local_file}.tmp" "$local_file"
+    _popular_info "Removed '$name' (local)"
+    return 0
+  fi
+
+  if [[ "$scope" == "global" ]]; then
+    _popular_ensure_file
+    awk -F'|' -v name="$name" '$1 != name' "$POPULAR_COMMANDS_FILE" > "${POPULAR_COMMANDS_FILE}.tmp"
+    mv "${POPULAR_COMMANDS_FILE}.tmp" "$POPULAR_COMMANDS_FILE"
+    _popular_secrets_remove_for_command "$name"
+    _popular_info "Removed '$name'"
+    return 0
+  fi
+
+  # Default: local-first
+  if [[ -n "$local_file" ]]; then
+    local found
+    found=$(awk -F'|' -v name="$name" '$1==name{f=1} END{print f+0}' "$local_file")
+    if (( found )); then
+      awk -F'|' -v name="$name" '$1 != name' "$local_file" > "${local_file}.tmp"
+      mv "${local_file}.tmp" "$local_file"
+      _popular_info "Removed '$name' (local)"
+      return 0
+    fi
   fi
 
   _popular_ensure_file

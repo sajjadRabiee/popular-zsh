@@ -39,7 +39,6 @@
       <a class="nav-brand" href="#">popular.zsh</a>
       <ul class="nav-links" id="nav-links">
         <li><a href="#templates" onclick="closeMenu()">Templates</a></li>
-        <li><a href="#tags" onclick="closeMenu()">Tags</a></li>
         <li><a href="#encryption" onclick="closeMenu()">Encryption</a></li>
         <li><a href="#pcli" onclick="closeMenu()">pcli</a></li>
         <li><a href="#playground" onclick="closeMenu()">Playground</a></li>
@@ -97,7 +96,7 @@
 
         <div class="feature-card" data-cmd="padd">
           <div class="cmd" style="color:var(--green)">padd / paddh</div>
-          <p>Save commands by name, or grab a line straight from your shell history by event number. Add <code class="mono" style="font-size:.8rem">-t tag1,tag2</code> to tag for filtering.</p>
+          <p>Save commands by name, or grab a line straight from your shell history by event number. Add <code class="mono" style="font-size:.8rem">--local</code> to write to a project-local file, or <code class="mono" style="font-size:.8rem">-t tag1,tag2</code> to tag for filtering.</p>
           <span class="card-hint">— hover to preview</span>
         </div>
 
@@ -127,7 +126,7 @@
 
         <div class="feature-card" data-cmd="pls">
           <div class="cmd" style="color:var(--orange)">pls</div>
-          <p>Browse saved commands with template hints and secret markers shown inline. Filter by tag with <code class="mono" style="font-size:.8rem">pls -t &lt;tag&gt;</code>.</p>
+          <p>Browse saved commands with template hints and secret markers shown inline. Local entries appear with a <code class="mono" style="font-size:.8rem">*</code> prefix. Filter with <code class="mono" style="font-size:.8rem">-l</code> / <code class="mono" style="font-size:.8rem">-g</code> or <code class="mono" style="font-size:.8rem">pls -t &lt;tag&gt;</code>.</p>
           <span class="card-hint">— hover to preview</span>
         </div>
 
@@ -254,6 +253,16 @@
               <td class="mono" style="color:var(--orange)">padd --confirm &lt;name&gt; …</td>
               <td>Confirmation guard</td>
               <td>Prompts <em>Are you sure? [y/N]</em> before <code class="mono" style="font-size:.85rem">p</code> executes; shown as <code class="mono" style="font-size:.85rem">⚠ confirm</code> in <code class="mono" style="font-size:.85rem">pls</code>; not triggered by <code class="mono" style="font-size:.85rem">pcp</code></td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--cyan)">padd -t &lt;tag,…&gt; &lt;name&gt; …</td>
+              <td>Tags</td>
+              <td>Attach comma-separated tags at save time; filter with <code class="mono" style="font-size:.85rem">pls -t &lt;tag&gt;</code></td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--cyan)">pls -t &lt;tag&gt;</td>
+              <td>Tag filter</td>
+              <td>Show only commands that carry this tag (case-insensitive); combine with a name needle: <code class="mono" style="font-size:.85rem">pls -t docker dep</code></td>
             </tr>
           </tbody>
         </table>
@@ -404,24 +413,8 @@
           </div>
         </div>
 
-      </div>
-    </div>
-  </section>
-
-  <!-- ── Tags ──────────────────────────────────────────────── -->
-  <section id="tags">
-    <div class="container">
-      <h2><span class="hl">Tags</span></h2>
-      <p>
-        Attach comma-separated tags when saving a command and use
-        <code class="mono" style="font-size:.85rem">pls -t &lt;tag&gt;</code> to filter the list.
-        Useful once your store grows past a few dozen entries.
-      </p>
-
-      <div class="two-col" style="margin-top:1.5rem">
-
         <div>
-          <h3>Saving with <code style="color:var(--cyan);font-size:.95rem">-t</code></h3>
+          <h3>Tags <span style="color:var(--cyan)">-t</span></h3>
           <div class="terminal">
             <div class="terminal-bar">
               <span class="dot dot-r"></span>
@@ -431,58 +424,17 @@
             </div>
             <pre><span class="p">$</span> <span class="k">padd</span> <span class="a">-t git gs</span>        <span class="q">git status</span>
 <span class="p">$</span> <span class="k">padd</span> <span class="a">-t git,tools gst</span> <span class="q">'git status -uno'</span>
-<span class="p">$</span> <span class="k">padd</span> <span class="a">--confirm -t prod dep</span> <span class="q">'kubectl apply -f manifest.yaml'</span>
-<span class="o">✓ Saved 'dep' [prod] (⚠ confirmation required)</span></pre>
-          </div>
-        </div>
-
-        <div>
-          <h3>Filtering with <code style="color:var(--orange);font-size:.95rem">pls -t</code></h3>
-          <div class="terminal">
-            <div class="terminal-bar">
-              <span class="dot dot-r"></span>
-              <span class="dot dot-y"></span>
-              <span class="dot dot-g"></span>
-              <span>zsh</span>
-            </div>
-            <pre><span class="p">$</span> <span class="kl">pls</span> <span class="a">-t git</span>
+<span class="p">$</span> <span class="kl">pls</span> <span class="a">-t git</span>
 <span class="o">Popular Commands  2 matching · 10 saved  #git</span>
 <span class="o">╭──────────────────────────────────╮</span>
 <span class="o">│ gs    │ git status               │</span>
 <span class="o">│       │ 🏷 git                   │</span>
-<span class="o">│                                  │</span>
 <span class="o">│ gst   │ git status -uno          │</span>
 <span class="o">│       │ 🏷 git,tools             │</span>
 <span class="o">╰──────────────────────────────────╯</span></pre>
           </div>
         </div>
 
-      </div>
-
-      <div class="tbl-wrap" style="margin-top:1.5rem">
-        <table>
-          <thead>
-            <tr><th>Syntax</th><th>What it does</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="mono">padd -t &lt;tag,…&gt; &lt;name&gt; &lt;cmd&gt;</td>
-              <td>Save with one or more comma-separated tags</td>
-            </tr>
-            <tr>
-              <td class="mono">padd --confirm -t &lt;tag,…&gt; …</td>
-              <td>Combine confirmation guard and tags freely — any order</td>
-            </tr>
-            <tr>
-              <td class="mono">pls -t &lt;tag&gt;</td>
-              <td>Show only commands that carry this tag (case-insensitive)</td>
-            </tr>
-            <tr>
-              <td class="mono">pls -t &lt;tag&gt; &lt;needle&gt;</td>
-              <td>Tag filter and name substring filter combined</td>
-            </tr>
-          </tbody>
-        </table>
       </div>
     </div>
   </section>
@@ -620,6 +572,17 @@
         Old entries without tags are read correctly without any migration.
         <strong style="color:var(--text)">pexport</strong> only writes the commands file —
         never the secrets file — so exports are safe to share or commit to version control.
+      </p>
+      <p style="margin-top:.75rem">
+        <strong style="color:var(--text)">Project-local files:</strong>
+        if a <code class="mono" style="font-size:.85rem">.popular_commands</code> file exists in
+        <code class="mono" style="font-size:.85rem">$PWD</code> or any ancestor directory,
+        <code class="mono" style="font-size:.85rem">p</code> checks it first.
+        Use <code class="mono" style="font-size:.85rem">padd --local</code> to create one.
+        <code class="mono" style="font-size:.85rem">pls</code> marks local entries with
+        <code class="mono" style="font-size:.85rem">*</code> in magenta;
+        <code class="mono" style="font-size:.85rem">-l</code> / <code class="mono" style="font-size:.85rem">-g</code> filter to one scope.
+        Commit the file alongside your code to share shortcuts with your team.
       </p>
     </div>
   </section>

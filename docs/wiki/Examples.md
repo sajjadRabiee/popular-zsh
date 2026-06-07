@@ -1,5 +1,32 @@
 # Examples
 
+## Project-local commands
+
+Keep project-specific commands in the repo alongside your code. They shadow global commands with the same name and are never visible outside the project directory tree.
+
+```zsh
+cd ~/projects/myapp
+
+padd --local run  'npm run dev'
+padd --local test 'npm test -- --watch'
+padd --local lint 'eslint src/'
+
+pls          # shows local entries marked with * and global entries together
+pls -l       # shows only the project-local ones
+
+p run        # picks up the local version
+premove --local run   # remove without touching the global store
+```
+
+Commit the file to share shortcuts with the whole team:
+
+```zsh
+git add .popular_commands
+git commit -m "add project shortcuts"
+```
+
+---
+
 ## Git shortcuts
 
 ```zsh

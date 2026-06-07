@@ -23,15 +23,17 @@ _popular_help_p() {
 
 _popular_help_padd() {
   _popular_help_open "padd" "save a command by name"
-  _popular_usage_row "padd [--confirm] [-t <tags>] <name> <command…>" "Save or replace a command"
+  _popular_usage_row "padd [--confirm] [--local] [-t <tags>] <name> <command…>" "Save or replace a command"
   _popular_usage_sep
   _popular_usage_row "  --confirm"             "Mark as dangerous — p prompts 'Are you sure? [y/N]' before exec"
+  _popular_usage_row "  --local"               "Write to \$PWD/.popular_commands instead of global store"
   _popular_usage_row "  -t / --tags <tag,…>"  "Comma-separated tags (e.g. docker,prod); filter with pls -t"
   _popular_usage_row "  {{name:int}}"          "Type annotation — integer (validated on p/pcp)"
   _popular_usage_row "  {{name:path}}"         "Type annotation — existing path (validated on p/pcp)"
   _popular_usage_row "  {{name:enum=a|b|c}}"  "Type annotation — one of the listed values; tab-completes"
   _popular_help_examples
   _popular_usage_example_line "padd gs git status"
+  _popular_usage_example_line "padd --local gs git status   # save to project-local file"
   _popular_usage_example_line "padd -t git gs git status"
   _popular_usage_example_line "padd -t docker,prod build 'docker build -t app .'"
   _popular_usage_example_line "padd serve 'python3 -m http.server [[port]]'"
@@ -45,12 +47,14 @@ _popular_help_padd() {
 
 _popular_help_paddh() {
   _popular_help_open "paddh" "save a command from shell history"
-  _popular_usage_row "paddh [--confirm] <history#> [name]" "Save event # (from \`history\`); name defaults to h<#>"
+  _popular_usage_row "paddh [--confirm] [--local] <history#> [name]" "Save event # (from \`history\`); name defaults to h<#>"
   _popular_usage_row "" "Negative numbers count back: -1 = previous command"
   _popular_usage_row "  --confirm" "Mark as dangerous — p prompts 'Are you sure? [y/N]' before exec"
+  _popular_usage_row "  --local"   "Write to \$PWD/.popular_commands instead of global store"
   _popular_help_examples
   _popular_usage_example_line "paddh 523 deploy-staging"
   _popular_usage_example_line "paddh -1          # save previous command as h-1"
+  _popular_usage_example_line "paddh --local -1 run-tests   # save to project-local file"
   _popular_usage_example_line "paddh --confirm -1 wipe   # save + guard previous command"
   _popular_help_close
 }
@@ -68,11 +72,16 @@ _popular_help_pcp() {
 
 _popular_help_pls() {
   _popular_help_open "pls" "list saved commands"
-  _popular_usage_row "pls [-t <tag>] [needle…]" "List all commands; optional tag and/or name filter"
+  _popular_usage_row "pls [-l|-g] [-t <tag>] [needle…]" "List commands; flags control local/global scope"
   _popular_usage_sep
+  _popular_usage_row "  -l"        "Show only local entries (error if no local file found)"
+  _popular_usage_row "  -g"        "Show only global entries"
   _popular_usage_row "  -t <tag>"  "Show only commands that have this tag (exact, case-insensitive)"
+  _popular_usage_row "  * prefix"  "Local entries are marked with * and shown in magenta"
   _popular_help_examples
   _popular_usage_example_line "pls"
+  _popular_usage_example_line "pls -l            # show only local commands"
+  _popular_usage_example_line "pls -g            # show only global commands"
   _popular_usage_example_line "pls git           # show only names containing 'git'"
   _popular_usage_example_line "pls -t docker     # show only commands tagged 'docker'"
   _popular_usage_example_line "pls -t prod dep   # tag filter + name filter combined"
@@ -81,18 +90,28 @@ _popular_help_pls() {
 
 _popular_help_premove() {
   _popular_help_open "premove" "delete a saved command"
-  _popular_usage_row "premove <name>" "Remove <name> and its associated secrets"
+  _popular_usage_row "premove [--local|--global] <name>" "Remove <name>; defaults to local-first"
+  _popular_usage_sep
+  _popular_usage_row "  --local"   "Remove only from the local .popular_commands file"
+  _popular_usage_row "  --global"  "Remove only from the global store"
+  _popular_usage_row "  (default)" "Remove from local if found there; otherwise from global"
   _popular_help_examples
   _popular_usage_example_line "premove gs"
+  _popular_usage_example_line "premove --local gs    # remove from local only"
+  _popular_usage_example_line "premove --global gs   # remove from global only"
   _popular_help_close
 }
 
 _popular_help_pedit() {
   _popular_help_open "pedit" "edit a saved command in \$EDITOR"
-  _popular_usage_row "pedit [name]" "Edit <name>'s text; omit to open the full store"
+  _popular_usage_row "pedit [--local] [name]" "Edit <name>'s text; omit to open the full store"
+  _popular_usage_sep
+  _popular_usage_row "  --local"   "Open the local .popular_commands file when no name given"
+  _popular_usage_row "  <name>"    "Edits the file where the entry was found (local or global)"
   _popular_help_examples
-  _popular_usage_example_line "pedit gs       # edit one command"
-  _popular_usage_example_line "pedit          # open full store in \$EDITOR"
+  _popular_usage_example_line "pedit gs         # edit one command (saves back to source file)"
+  _popular_usage_example_line "pedit            # open global store in \$EDITOR"
+  _popular_usage_example_line "pedit --local    # open local .popular_commands in \$EDITOR"
   _popular_help_close
 }
 

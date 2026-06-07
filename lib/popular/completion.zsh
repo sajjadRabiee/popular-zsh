@@ -1,14 +1,27 @@
 # lib/popular/completion.zsh
 
 _popular_all_tags() {
-  _popular_ensure_file
-  awk -F'|' '
-    $NF ~ /^t:/ {
-      tags = substr($NF, 3)
-      n = split(tags, a, ",")
-      for (i = 1; i <= n; i++) if (a[i] != "") print a[i]
-    }
-  ' "$POPULAR_COMMANDS_FILE" | sort -u
+  local local_file
+  local_file=$(_popular_find_local_file)
+  {
+    if [[ -n "$local_file" ]]; then
+      awk -F'|' '
+        $NF ~ /^t:/ {
+          tags = substr($NF, 3)
+          n = split(tags, a, ",")
+          for (i = 1; i <= n; i++) if (a[i] != "") print a[i]
+        }
+      ' "$local_file"
+    fi
+    _popular_ensure_file
+    awk -F'|' '
+      $NF ~ /^t:/ {
+        tags = substr($NF, 3)
+        n = split(tags, a, ",")
+        for (i = 1; i <= n; i++) if (a[i] != "") print a[i]
+      }
+    ' "$POPULAR_COMMANDS_FILE"
+  } | sort -u
 }
 
 _popular_complete_saved_names() {
@@ -27,7 +40,7 @@ _popular_complete_pls() {
     return
   fi
   if [[ "$CURRENT" == 2 ]]; then
-    compadd -- -t
+    compadd -- -t -l -g
     _popular_complete_saved_names 'pls filter'
     return
   fi
@@ -37,7 +50,7 @@ _popular_complete_pls() {
 _popular_complete_padd() {
   case "$CURRENT" in
     2)
-      compadd -- --confirm -t --tags --help
+      compadd -- --confirm --local -t --tags --help
       ;;
     *)
       if [[ "${words[CURRENT-1]}" == -t || "${words[CURRENT-1]}" == --tags ]]; then
@@ -46,7 +59,24 @@ _popular_complete_padd() {
         (( ${#tags[@]} )) && _describe 'tag' tags
         return
       fi
-      compadd -- --confirm -t --tags
+      compadd -- --confirm --local -t --tags
+      ;;
+  esac
+}
+
+_popular_complete_paddh() {
+  case "$CURRENT" in
+    2)
+      compadd -- --confirm --local -t --tags --help
+      ;;
+    *)
+      if [[ "${words[CURRENT-1]}" == -t || "${words[CURRENT-1]}" == --tags ]]; then
+        local -a tags
+        tags=("${(@f)$(_popular_all_tags)}")
+        (( ${#tags[@]} )) && _describe 'tag' tags
+        return
+      fi
+      compadd -- --confirm --local -t --tags
       ;;
   esac
 }
@@ -185,6 +215,15 @@ _popular_complete_psecret() {
   return 1
 }
 
+_popular_complete_premove() {
+  if (( CURRENT == 2 )); then
+    compadd -- --local --global
+    _popular_complete_saved_names 'command name'
+    return
+  fi
+  _popular_complete_saved_names 'command name'
+}
+
 if [[ -o interactive ]]; then
   if ! whence compdef >/dev/null 2>&1; then
     autoload -Uz compinit
@@ -193,17 +232,20 @@ if [[ -o interactive ]]; then
 
   if whence compdef >/dev/null 2>&1; then
     compdef _popular_complete_p p pcp
-    compdef _popular_complete_saved_names premove
+    compdef _popular_complete_premove premove
     compdef _popular_complete_pls pls
     compdef _popular_complete_padd padd
+    compdef _popular_complete_paddh paddh
 
     _popular_complete_pedit() {
-      (( CURRENT == 2 )) || return 1
-      _popular_complete_saved_names
+      if (( CURRENT == 2 )); then
+        compadd -- --local
+        _popular_complete_saved_names
+      fi
     }
     compdef _popular_complete_pedit pedit
     compdef _popular_complete_psecret psecret
     compdef _files pexport pimport
-    compdef _nothing paddh pupdate psecret-reset
+    compdef _nothing pupdate psecret-reset
   fi
 fi

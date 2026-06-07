@@ -11,17 +11,30 @@ Save a command:
 ```zsh
 padd gs git status
 padd serve 'python3 -m http.server [[port]]'
+padd --local run 'npm test'   # writes to $PWD/.popular_commands
 ```
+
+| Flag | Description |
+|------|-------------|
+| `--local` | Write to `$PWD/.popular_commands` instead of the global store |
+| `--confirm` | Prompt `Are you sure? [y/N]` when the command is run with `p` |
+| `-t / --tags <tag,…>` | Attach comma-separated tags; filter with `pls -t` |
 
 ## `paddh`
 
 Save a command line from zsh history by event number (the number shown in the first column of `history`). Only works in an interactive shell.
 
 ```zsh
-paddh 233           # default name h233
-paddh 233 gs        # save event 233 as gs
-paddh -1            # previous command (default name h-1)
+paddh 233                    # default name h233
+paddh 233 gs                 # save event 233 as gs
+paddh -1                     # previous command (default name h-1)
+paddh --local -1 run-tests   # save to project-local file
 ```
+
+| Flag | Description |
+|------|-------------|
+| `--local` | Write to `$PWD/.popular_commands` instead of the global store |
+| `--confirm` | Prompt `Are you sure? [y/N]` when the command is run with `p` |
 
 ## `p`
 
@@ -60,18 +73,37 @@ Useful when you need to paste the fully-expanded command into a remote SSH sessi
 
 Show a polished list of saved commands with template option hints and secret hints. With arguments, only bookmarks whose **name** contains the needle (substring, case-insensitive) are shown; multiple words form one needle string.
 
+When a project-local `.popular_commands` file is found (by walking up from `$PWD`), both files are shown together. Local entries appear with a `*` prefix in magenta.
+
 ```zsh
-pls
-pls git
+pls                # show all (local + global)
+pls -l             # show only local entries
+pls -g             # show only global entries
+pls git            # filter by name substring
+pls -t docker      # filter by tag
+pls -l git         # local entries matching 'git'
 ```
+
+| Flag | Description |
+|------|-------------|
+| `-l` | Show only entries from the local `.popular_commands` file (error if none found) |
+| `-g` | Show only entries from the global store |
+| `-t <tag>` | Show only commands that carry this tag (case-insensitive, exact match) |
 
 ## `premove`
 
-Delete a saved command and remove any **per-command** secret rows for that name (global secrets are unchanged).
+Delete a saved command. Without flags, removes from the local file if the name is found there; otherwise falls back to the global store. Per-command secrets are removed only when deleting from the global store (secrets are always global).
 
 ```zsh
-premove gs
+premove gs            # local-first: removes local entry if found, else global
+premove --local gs    # only remove from the local file
+premove --global gs   # only remove from the global store
 ```
+
+| Flag | Description |
+|------|-------------|
+| `--local` | Remove only from the project-local file; error if none found or name absent |
+| `--global` | Remove only from the global store |
 
 ## `pexport`
 
@@ -158,12 +190,17 @@ You will be prompted for your master password. Each value is re-encrypted and th
 
 ## `pedit`
 
-Edit the whole backing file (same `name|command` format as on disk), or edit **only one** bookmark's command text in a scratch buffer:
+Edit the whole backing file (same `name|command` format as on disk), or edit **only one** bookmark's command text in a scratch buffer. When editing a named entry, the change is saved back to whichever file (local or global) the entry was found in.
 
 ```zsh
-pedit              # opens ~/.popular_commands (or $POPULAR_COMMANDS_FILE)
-pedit serve        # opens just the saved command for "serve"
+pedit              # opens the global store in $EDITOR
+pedit --local      # opens the project-local .popular_commands in $EDITOR
+pedit serve        # edits just the saved command for "serve" (saves to its source file)
 ```
+
+| Flag | Description |
+|------|-------------|
+| `--local` | (no-arg form only) Open the local `.popular_commands` file; error if none found |
 
 Uses **`$EDITOR`**, or **vim** if `EDITOR` is unset. If the editor exits non-zero, changes are not saved. Saving an empty buffer is rejected (use `premove` to delete).
 
